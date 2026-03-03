@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-BR" class="h-full">
  <head>
@@ -185,8 +184,7 @@
   <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
  </head>
  <body class="h-full bg-gray-50">
-  <div class="min-h-full"><!-- Header -->
-   <header class="gradient-bg shadow-lg">
+  <div class="min-h-full"><header class="gradient-bg shadow-lg">
     <div class="max-w-full mx-auto responsive-padding">
      <div class="flex justify-between items-center py-2 sm:py-4 md:py-6 tv-sm:py-8 tv-md:py-10">
       <div class="flex items-center">
@@ -211,8 +209,7 @@
       </div>
      </div>
     </div>
-   </header><!-- Navigation Tabs -->
-   <nav class="bg-white shadow-sm border-b">
+   </header><nav class="bg-white shadow-sm border-b">
     <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 tv-padding tablet-padding mobile-padding">
      <div class="flex flex-wrap justify-center tv-sm:justify-start space-x-2 tv-sm:space-x-4 tv-md:space-x-8 mobile-scroll"><button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-button focusable tv-button active py-3 tv-sm:py-4 tv-md:py-5 px-2 tv-sm:px-4 tv-md:px-6 border-b-2 border-primary text-primary font-medium text-xs tv-sm:text-sm tv-md:text-base tv-text-lg whitespace-nowrap">
        <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewbox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
@@ -229,9 +226,7 @@
        </svg> Calendário </button>
      </div>
     </div>
-   </nav><!-- Main Content -->
-   <main class="max-w-full mx-auto py-4 tv-sm:py-6 tv-md:py-8 px-4 sm:px-6 lg:px-8 tv-padding tablet-padding mobile-padding"><!-- Dashboard Tab -->
-    <div id="dashboard-content" class="tab-content">
+   </nav><main class="max-w-full mx-auto py-4 tv-sm:py-6 tv-md:py-8 px-4 sm:px-6 lg:px-8 tv-padding tablet-padding mobile-padding"><div id="dashboard-content" class="tab-content">
      <div class="responsive-grid gap-2 xs:gap-3 sm:gap-4 md:gap-6 tv-sm:gap-8 tv-md:gap-10 mb-4 sm:mb-6 tv-sm:mb-8">
       <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg card-shadow responsive-padding text-white focusable touch-friendly">
        <div class="flex items-center">
@@ -294,14 +289,36 @@
        </div>
       </div>
      </div>
+     
+     <div class="bg-white rounded-lg card-shadow p-4 tv-sm:p-6 mb-4 sm:mb-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+       <div>
+        <h3 class="text-base tv-sm:text-lg font-bold text-gray-900">Relatórios de Demandas Concluídas</h3>
+        <p class="text-xs tv-sm:text-sm text-gray-500">Histórico completo de todas as demandas finalizadas</p>
+       </div>
+       <div class="flex flex-wrap gap-2">
+        <button onclick="gerarRelatorioHTML()" class="focusable flex items-center px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm font-medium transition-colors">
+         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+         Ver HTML
+        </button>
+        <button onclick="gerarRelatorioPDF()" class="focusable flex items-center px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium transition-colors">
+         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>
+         Gerar PDF
+        </button>
+        <button onclick="gerarViewExcel()" class="focusable flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium transition-colors">
+         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-2 16H8v-2h4v2zm0-4H8v-2h4v2zm2-8h-4V4h4v6z"/></svg>
+         Exportar Excel
+        </button>
+       </div>
+      </div>
+     </div>
      <div class="bg-white rounded-lg card-shadow p-4 tv-sm:p-6 tv-md:p-8">
       <h3 class="text-base tv-sm:text-lg tv-md:text-xl font-medium text-gray-900 mb-4 tv-text-lg">Demandas Recentes</h3>
       <div id="demandasRecentes" class="space-y-3">
        <p class="text-gray-500 text-center py-6 tv-sm:py-8 text-sm tv-sm:text-base">Nenhuma demanda cadastrada ainda</p>
       </div>
      </div>
-    </div><!-- Cadastro Tab -->
-    <div id="cadastro-content" class="tab-content hidden">
+    </div><div id="cadastro-content" class="tab-content hidden">
      <div class="bg-white rounded-lg card-shadow p-4 tv-sm:p-6 tv-md:p-8">
       <h2 class="text-xl tv-sm:text-2xl tv-md:text-3xl font-bold text-gray-900 mb-4 tv-sm:mb-6 tv-text-2xl">Nova Demanda de Transporte</h2>
       <form id="demandaForm" class="space-y-4 tv-sm:space-y-6">
@@ -341,10 +358,8 @@
        </div>
       </form>
      </div>
-    </div><!-- Motoristas Tab -->
-    <div id="motoristas-content" class="tab-content hidden">
-     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><!-- Formulário de Cadastro -->
-      <div class="bg-white rounded-lg card-shadow p-8">
+    </div><div id="motoristas-content" class="tab-content hidden">
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><div class="bg-white rounded-lg card-shadow p-8">
        <h2 class="text-2xl font-bold text-gray-900 mb-6">Cadastrar Motorista</h2>
        <form id="motoristaForm" class="space-y-6">
         <div><label for="nomeMotoristaForm" class="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label> <input type="text" id="nomeMotoristaForm" name="nomeMotoristaForm" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
@@ -368,16 +383,14 @@
         <div class="flex justify-end space-x-4"><button type="button" onclick="limparFormularioMotorista()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"> Limpar </button> <button type="submit" class="px-6 py-2 bg-primary text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary"> Cadastrar Motorista </button>
         </div>
        </form>
-      </div><!-- Lista de Motoristas -->
-      <div class="bg-white rounded-lg card-shadow p-8">
+      </div><div class="bg-white rounded-lg card-shadow p-8">
        <h3 class="text-lg font-medium text-gray-900 mb-4">Motoristas Cadastrados</h3>
        <div id="listaMotoristas" class="space-y-4">
         <p class="text-gray-500 text-center py-8">Nenhum motorista cadastrado ainda</p>
        </div>
       </div>
      </div>
-    </div><!-- Timeline Tab -->
-    <div id="timeline-content" class="tab-content hidden">
+    </div><div id="timeline-content" class="tab-content hidden">
      <div class="bg-white rounded-lg card-shadow p-6">
       <div class="flex justify-between items-center mb-6">
        <h2 class="text-2xl font-bold text-gray-900">Timeline de Demandas</h2>
@@ -389,8 +402,7 @@
        <p class="text-gray-500 text-center py-8">Nenhuma demanda cadastrada</p>
       </div>
      </div>
-    </div><!-- Calendário Tab -->
-    <div id="calendario-content" class="tab-content hidden">
+    </div><div id="calendario-content" class="tab-content hidden">
      <div class="bg-white rounded-lg card-shadow overflow-hidden">
       <div class="bg-gradient-to-r from-slate-700 via-gray-800 to-slate-900 px-4 tv-sm:px-6 tv-md:px-8 py-4 tv-sm:py-6 tv-md:py-8">
        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
@@ -410,8 +422,7 @@
        </div>
       </div>
       <div class="p-3 tv-sm:p-6 tv-md:p-8 bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
-       <div class="bg-white rounded-xl shadow-lg overflow-hidden"><!-- Cabeçalho dos dias da semana -->
-        <div class="grid grid-cols-7 bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800">
+       <div class="bg-white rounded-xl shadow-lg overflow-hidden"><div class="grid grid-cols-7 bg-gradient-to-r from-slate-600 via-gray-700 to-slate-800">
          <div class="p-3 tv-sm:p-4 text-center text-white font-bold text-sm tv-sm:text-base border-r border-white border-opacity-20">
           Dom
          </div>
@@ -433,11 +444,8 @@
          <div class="p-3 tv-sm:p-4 text-center text-white font-bold text-sm tv-sm:text-base">
           Sáb
          </div>
-        </div><!-- Grid do calendário -->
-        <div id="calendarioGrid" class="grid grid-cols-7 divide-x divide-y divide-gray-200"><!-- Dias serão inseridos dinamicamente -->
-        </div>
-       </div><!-- Legenda -->
-       <div class="mt-6 bg-white rounded-lg p-4 shadow-md">
+        </div><div id="calendarioGrid" class="grid grid-cols-7 divide-x divide-y divide-gray-200"></div>
+       </div><div class="mt-6 bg-white rounded-lg p-4 shadow-md">
         <h4 class="text-lg font-bold text-gray-900 mb-3">Legenda</h4>
         <div class="flex flex-wrap gap-4">
          <div class="flex items-center space-x-2">
@@ -456,8 +464,7 @@
        </div>
       </div>
      </div>
-    </div><!-- Escala Tab -->
-    <div id="escala-content" class="tab-content hidden">
+    </div><div id="escala-content" class="tab-content hidden">
      <div class="bg-white rounded-lg card-shadow overflow-hidden">
       <div class="bg-gradient-to-r from-slate-700 via-gray-800 to-slate-900 px-4 tv-sm:px-6 tv-md:px-8 py-4 tv-sm:py-6 tv-md:py-8">
        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
@@ -546,8 +553,7 @@
      </div>
     </div>
    </main>
-  </div><!-- Modal de Edição de Demanda -->
-  <div id="modalEdicao" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 hidden">
+  </div><div id="modalEdicao" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 hidden">
    <div class="bg-white rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto shadow-2xl">
     <div class="bg-gradient-to-r from-slate-700 via-gray-800 to-slate-900 px-6 py-4 rounded-t-lg">
      <div class="flex justify-between items-center">
@@ -2093,6 +2099,166 @@
             
             document.body.appendChild(modal);
         }
+
+        // ==========================================
+        // INÍCIO: FUNÇÕES DE GERAÇÃO DE RELATÓRIOS
+        // ==========================================
+
+        function getDemandasConcluidas() {
+            // Pega todas as demandas com status Concluída e ordena da mais recente para a mais antiga
+            return demandas
+                .filter(d => d.status === 'Concluída')
+                .sort((a, b) => new Date(b.dataCadastro) - new Date(a.dataCadastro));
+        }
+
+        function gerarTabelaRelatorio() {
+            const concluidas = getDemandasConcluidas();
+            let tbody = '';
+            
+            if (concluidas.length === 0) {
+                tbody = '<tr><td colspan="8" style="padding: 15px; text-align: center; color: #6b7280;">Nenhuma demanda concluída encontrada no histórico.</td></tr>';
+            } else {
+                concluidas.forEach(d => {
+                    tbody += `
+                        <tr style="border-bottom: 1px solid #e5e7eb; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='transparent'">
+                            <td style="padding: 12px 8px; font-size: 14px;">${formatarDataBrasil(d.dataDemanda)}</td>
+                            <td style="padding: 12px 8px; font-size: 14px; font-weight: bold;">${d.horario}</td>
+                            <td style="padding: 12px 8px; font-size: 14px;">${d.solicitante}<br><span style="font-size: 12px; color: #6b7280;">${d.setor}</span></td>
+                            <td style="padding: 12px 8px; font-size: 14px;">${d.partida}</td>
+                            <td style="padding: 12px 8px; font-size: 14px;">${d.destino}</td>
+                            <td style="padding: 12px 8px; font-size: 14px; font-weight: 500;">${d.nomeMotorista || '-'}</td>
+                            <td style="padding: 12px 8px; font-size: 14px;">${d.placaVeiculo || '-'}</td>
+                            <td style="padding: 12px 8px; font-size: 14px;">${d.numeroSei || '-'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            return `
+                <table id="tabelaRelatorio" style="width: 100%; border-collapse: collapse; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; text-align: left; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <thead style="background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #6b7280 100%); color: white;">
+                        <tr>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Data</th>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Hora</th>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Solicitante / Setor</th>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Partida</th>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Destino</th>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Motorista</th>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Placa</th>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Nº SEI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tbody}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function gerarEstruturaPagina(titulo, botoesExtras = '', scriptExtra = '') {
+            return `
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${titulo}</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <style>
+                        body { background-color: #f3f4f6; padding: 2rem; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+                        .container { max-width: 1200px; margin: 0 auto; }
+                        @media print {
+                            .no-print { display: none !important; }
+                            body { background-color: white; padding: 0; }
+                            .container { max-width: 100%; box-shadow: none; border: none; }
+                            table { page-break-inside: auto; }
+                            tr { page-break-inside: avoid; page-break-after: auto; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="bg-white p-6 rounded-t-xl border-b-4 border-gray-800 flex justify-between items-center shadow-sm">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-gray-800 rounded-lg flex items-center justify-center text-white">
+                                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                                </div>
+                                <div>
+                                    <h1 class="text-2xl font-bold text-gray-900">TRANSPORTE & DEMANDAS - SEMCAS</h1>
+                                    <h2 class="text-lg text-gray-600 font-medium">${titulo}</h2>
+                                    <p class="text-sm text-gray-500">Gerado em: ${new Date().toLocaleString('pt-BR')} por TransportHub</p>
+                                </div>
+                            </div>
+                            <div class="no-print flex space-x-2">
+                                ${botoesExtras}
+                                <button onclick="window.close()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium transition-colors">Fechar Janela</button>
+                            </div>
+                        </div>
+                        <div class="mt-4 shadow-lg rounded-xl overflow-hidden border border-gray-200">
+                            ${gerarTabelaRelatorio()}
+                        </div>
+                        <div class="mt-4 text-center text-sm text-gray-500 no-print">
+                            Total de registros listados: <strong>${getDemandasConcluidas().length}</strong>
+                        </div>
+                    </div>
+                    ${scriptExtra}
+                </body>
+                </html>
+            `;
+        }
+
+        function gerarRelatorioHTML() {
+            const janela = window.open('', '_blank');
+            const botaoImprimir = '<button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-sm">Imprimir Relatório</button>';
+            janela.document.write(gerarEstruturaPagina('Histórico Completo de Demandas Concluídas', botaoImprimir));
+            janela.document.close();
+        }
+
+        function gerarRelatorioPDF() {
+            const janela = window.open('', '_blank');
+            janela.document.write(gerarEstruturaPagina('Relatório de Demandas Concluídas (Pronto para PDF)'));
+            janela.document.close();
+            
+            // Aguarda 1 segundo para o Tailwind renderizar os estilos antes de abrir a caixa de impressão/PDF
+            setTimeout(() => {
+                janela.print();
+            }, 1000);
+        }
+
+        function gerarViewExcel() {
+            const botaoExcel = `
+                <button onclick="baixarExcel()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors shadow-sm flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-2 16H8v-2h4v2zm0-4H8v-2h4v2zm2-8h-4V4h4v6z"/></svg>
+                    Fazer Download em Excel
+                </button>
+            `;
+            
+            const scriptExcel = `
+                <script>
+                    function baixarExcel() {
+                        const tabela = document.getElementById('tabelaRelatorio').outerHTML;
+                        // O meta charset garante que acentos fiquem corretos no Excel
+                        const htmlBase = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body>' + tabela + '</body></html>';
+                        
+                        const blob = new Blob([htmlBase], { type: 'application/vnd.ms-excel' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'SEMCAS_Demandas_Concluidas.xls';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                <\/script>
+            `;
+
+            const janela = window.open('', '_blank');
+            janela.document.write(gerarEstruturaPagina('Pré-visualização para Exportação Excel', botaoExcel, scriptExcel));
+            janela.document.close();
+        }
+        
+        // ==========================================
+        // FIM: FUNÇÕES DE GERAÇÃO DE RELATÓRIOS
+        // ==========================================
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99726551965a6d4b',t:'MTc2MTkwNTc3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ </body>
 </html>
