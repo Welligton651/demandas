@@ -140,16 +140,16 @@
     </style>
 </head>
 <body class="h-full bg-gray-50">
+ <body class="h-full bg-gray-50">
 
-    <!-- TELA DE LOGIN COM GLASSMORPHISM E FUNDO DE ALTA RESOLUÇÃO -->
-    <div id="telaLogin" class="fixed inset-0 z-[100] flex items-center justify-center bg-cover bg-center bg-no-repeat bg-fixed" style="background-color: #0f172a; background-image: url('1784038809356(1).png');">
+    <!-- TELA DE LOGIN COM GLASSMORPHISM -->
+    <div id="telaLogin" class="fixed inset-0 z-[100] flex items-center justify-center bg-cover bg-center bg-no-repeat bg-fixed" style="background-color: #0f172a; background-image: url('https://i.ibb.co/xKTwCyNm/1784038809356-1.png');">
         
-        <!-- Overlay sutil escuro para dar contraste da imagem brilhante com o vidro do formulário -->
-        <div class="absolute inset-0 bg-slate-900/60 mix-blend-multiply"></div>
+        <!-- Overlay sutil escuro para dar contraste da imagem com o vidro -->
         <div class="absolute inset-0 bg-black/40"></div>
 
         <!-- Container Glassmorphism -->
-        <div class="relative z-10 w-full max-w-md p-8 mx-4 bg-white/10 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] border border-white/20">
+        <div class="relative z-10 w-full max-w-md p-8 mx-4 bg-white/10 backdrop-blur-lg rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] border border-white/20">
             <div class="text-center mb-8">
                 <div class="mx-auto w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-4 shadow-lg border border-white/20">
                     <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -658,8 +658,8 @@
             authDomain: "controle-de-estoque-65575.firebaseapp.com",
             projectId: "controle-de-estoque-65575",
             storageBucket: "controle-de-estoque-65575.firebasestorage.app",
-            messagingSenderId: ".",
-            appId: "1:.:web:61ec7900ba6c94370ee262",
+            messagingSenderId: ".", // IMPORTANTE: Substitua pelo seu ID numérico real
+            appId: "1:.:web:61ec7900ba6c94370ee262", // IMPORTANTE: Substitua pelo seu App ID real
             measurementId: "G-ZY0FJG1Q34"
         };
 
@@ -668,6 +668,15 @@
         
         // Inicializar o serviço de Banco de Dados (Firestore)
         const db = firebase.firestore();
+
+        db.enablePersistence()
+            .catch((err) => {
+                if (err.code == 'failed-precondition') {
+                    console.warn("Múltiplas abas abertas. A persistência offline do Firebase só funciona em uma aba por vez.");
+                } else if (err.code == 'unimplemented') {
+                    console.warn("O navegador atual não suporta armazenamento offline para o Firebase.");
+                }
+            });
 
         // Dados globais
         let demandas = [];
