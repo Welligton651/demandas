@@ -273,6 +273,10 @@
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                         Entrar
                     </button>
+                    <button type="button" id="btnLoginDigital" onclick="thEntrarComDigital()" style="display:none" class="w-full py-3 bg-emerald-600/80 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition-all items-center justify-center backdrop-blur-md border border-emerald-400/50">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11c0 3.5-.5 6-2 8.5M8.5 8.5A4.5 4.5 0 0 1 16.5 11c0 1.5-.1 3-.5 4.5M5 11a7 7 0 0 1 11-5.7M5 14.5c0 1.2-.2 2.4-.6 3.5M19 11c0 4-.7 7-2 9.5M12 7.5A3.5 3.5 0 0 0 8.5 11"/></svg>
+                        <span id="btnLoginDigitalTxt">Entrar com digital</span>
+                    </button>
                 </div>
 
                 <div class="flex items-center justify-center">
@@ -3867,6 +3871,7 @@
                 nivelAcesso = 'admin';
                 usuarioLogado = usuario;
                 iniciarSistema();
+                if (typeof thOferecerDigital === 'function') thOferecerDigital(usuario);
             } else {
                 mostrarMensagem('Senha incorreta para ' + usuario + '!', "error");
             }
@@ -3957,6 +3962,7 @@
             updateCalendario();
             updateCalendarioFerias();
 
+            if (typeof thAtualizarBotaoDigital === 'function') thAtualizarBotaoDigital();
             mostrarMensagem('Sessão encerrada com sucesso.', 'success');
         }
 
@@ -4747,6 +4753,121 @@ function renderAdvertencias() {
             const send = document.getElementById('thAiSend'); send.disabled=true; send.textContent='…';
             setTimeout(()=>{ try { thAddMessage(thAnswerQuestion(question),'bot'); } catch(err) { console.error(err); thAddMessage('Não consegui concluir a consulta. Tente reformular a pergunta.','bot'); } finally { send.disabled=false; send.textContent='Enviar'; } },120);
         });
+        // ===== Acesso rápido com digital (WebAuthn / biometria nativa do Android) =====
+        // Atenção: sem servidor próprio, a digital funciona como "desbloqueio local" deste aparelho.
+        const TH_BIO_KEY = 'transporthub_bio';
+        function thBioSuportado() {
+            return !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+        }
+        function thBioLer() {
+            try { return JSON.parse(localStorage.getItem(TH_BIO_KEY) || 'null'); } catch (e) { return null; }
+        }
+        function thB64uParaBytes(s) {
+            s = s.replace(/-/g, '+').replace(/_/g, '/');
+            while (s.length % 4) s += '=';
+            const bin = atob(s), out = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out;
+        }
+        function thBytesParaB64u(buf) {
+            const b = new Uint8Array(buf); let s = '';
+            b.forEach(x => s += String.fromCharCode(x));
+            return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        async function thBioDisponivel() {
+            if (!thBioSuportado()) return false;
+            try { return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }
+            catch (e) { return false; }
+        }
+        async function thAtualizarBotaoDigital() {
+            const btn = document.getElementById('btnLoginDigital');
+            if (!btn) return;
+            const reg = thBioLer();
+            if (reg && reg.credId && ADMINS_AUTORIZADOS.includes(reg.usuario) && await thBioDisponivel()) {
+                document.getElementById('btnLoginDigitalTxt').textContent = 'Entrar com digital (' + reg.usuario.split(' ')[0] + ')';
+                btn.style.display = 'flex';
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+        async function thEntrarComDigital() {
+            const reg = thBioLer();
+            if (!reg || !reg.credId) { mostrarMensagem('Digital não configurada neste aparelho.', 'error'); return; }
+            try {
+                const cred = await navigator.credentials.get({
+                    publicKey: {
+                        challenge: crypto.getRandomValues(new Uint8Array(32)),
+                        allowCredentials: [{ id: thB64uParaBytes(reg.credId), type: 'public-key', transports: ['internal'] }],
+                        userVerification: 'required',
+                        timeout: 60000
+                    }
+                });
+                if (!cred) throw new Error('sem credencial');
+                nivelAcesso = 'admin';
+                usuarioLogado = reg.usuario;
+                iniciarSistema();
+            } catch (e) {
+                console.warn('Digital não validada:', e);
+                if (e && e.name === 'NotAllowedError') mostrarMensagem('Digital cancelada ou não reconhecida.', 'error');
+                else mostrarMensagem('Não foi possível usar a digital. Entre com a senha.', 'error');
+            }
+        }
+        async function thAtivarDigital(usuario) {
+            try {
+                const cred = await navigator.credentials.create({
+                    publicKey: {
+                        challenge: crypto.getRandomValues(new Uint8Array(32)),
+                        rp: { name: 'TransportHub', id: location.hostname },
+                        user: { id: crypto.getRandomValues(new Uint8Array(16)), name: usuario, displayName: usuario },
+                        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+                        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' },
+                        attestation: 'none',
+                        timeout: 60000
+                    }
+                });
+                localStorage.setItem(TH_BIO_KEY, JSON.stringify({ usuario, credId: thBytesParaB64u(cred.rawId) }));
+                mostrarMensagem('Digital ativada neste aparelho!', 'success');
+            } catch (e) {
+                console.warn('Ativação da digital falhou:', e);
+                mostrarMensagem('Não foi possível ativar a digital.', 'error');
+            }
+        }
+        function thDesativarDigital() {
+            try { localStorage.removeItem(TH_BIO_KEY); } catch (e) {}
+            thAtualizarBotaoDigital();
+            mostrarMensagem('Digital removida deste aparelho.', 'success');
+        }
+        // Após login com senha, oferece ativar a digital (uma vez por usuário/aparelho)
+        async function thOferecerDigital(usuario) {
+            if (!(await thBioDisponivel())) return;
+            const reg = thBioLer();
+            if (reg && reg.usuario === usuario) return;
+            try { if (localStorage.getItem(TH_BIO_KEY + '_recusou_' + usuario)) return; } catch (e) {}
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/60 flex items-center justify-center z-[1400] p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden">
+                    <div class="px-5 py-4 text-white font-bold" style="background:#1f2937">Acesso rápido com digital</div>
+                    <div class="p-5 text-sm text-gray-700 space-y-2">
+                        <p>Deseja entrar neste aparelho usando a digital (ou o desbloqueio do celular) em vez da senha?</p>
+                        <p class="text-xs text-gray-500">Você poderá remover isso a qualquer momento limpando os dados do site ou pelo navegador.</p>
+                    </div>
+                    <div class="px-5 py-3 bg-gray-50 flex justify-end gap-2 border-t">
+                        <button id="thBioNao" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-medium">Agora não</button>
+                        <button id="thBioSim" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold">Ativar</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+            modal.querySelector('#thBioNao').onclick = () => {
+                try { localStorage.setItem(TH_BIO_KEY + '_recusou_' + usuario, '1'); } catch (e) {}
+                modal.remove();
+            };
+            modal.querySelector('#thBioSim').onclick = async () => {
+                modal.remove();
+                await thAtivarDigital(usuario);
+            };
+        }
+        document.addEventListener('DOMContentLoaded', thAtualizarBotaoDigital);
         // ===== Foto persistente do perfil do gestor =====
         let thProfileImageCurrent = '';
         function thOpenProfile() {
