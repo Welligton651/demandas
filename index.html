@@ -280,11 +280,12 @@
                             </span>
                             <span class="flex-1 min-w-0 leading-tight">
                                 <span class="block text-[11px] font-bold uppercase tracking-widest text-emerald-200/90">Acesso rápido</span>
-                                <span class="block text-base font-bold text-white truncate">Entrar com digital</span>
+                                <span id="bioTitulo" class="block text-base font-bold text-white truncate">Entrar com digital</span>
                                 <span id="bioUsuarioNome" class="block text-xs text-gray-200/90 truncate"></span>
                             </span>
                             <svg class="flex-shrink-0 w-5 h-5 text-emerald-100/80 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                         </button>
+                        <p id="bioAvisoLogin" class="text-center text-[11px] leading-snug text-gray-300">A biometria é um atalho extra. Você pode sempre entrar com usuário e senha.</p>
                         <div class="text-center"><button type="button" onclick="thDesativarDigital()" class="text-[11px] text-gray-300 underline hover:text-white">Remover biometria deste aparelho</button></div>
                     </div>
                 </div>
@@ -4775,6 +4776,11 @@ function renderAdvertencias() {
         // ===== Acesso rápido com digital (WebAuthn / biometria nativa do Android) =====
         // Atenção: sem servidor próprio, a digital funciona como "desbloqueio local" deste aparelho.
         const TH_BIO_KEY = 'transporthub_bio';
+        // iPhone/iPad usam Face ID; os demais aparelhos (Android) usam digital
+        function thEhIOS() {
+            return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+        function thBioNome() { return thEhIOS() ? 'Face ID' : 'digital'; }
         function thBioSuportado() {
             return !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
         }
@@ -4805,6 +4811,8 @@ function renderAdvertencias() {
             const reg = thBioLer();
             if (reg && reg.credId && ADMINS_AUTORIZADOS.includes(reg.usuario) && await thBioDisponivel()) {
                 document.getElementById('bioUsuarioNome').textContent = 'Entrar como ' + reg.usuario;
+                document.getElementById('bioTitulo').textContent = 'Entrar com ' + thBioNome();
+                document.getElementById('bioAvisoLogin').textContent = (thEhIOS() ? 'O Face ID é um atalho extra' : 'A digital é um atalho extra') + ' e não substitui a senha. Você pode sempre entrar com usuário e senha.';
                 bloco.style.display = 'block';
             } else {
                 bloco.style.display = 'none';
@@ -4812,7 +4820,7 @@ function renderAdvertencias() {
         }
         async function thEntrarComDigital() {
             const reg = thBioLer();
-            if (!reg || !reg.credId) { mostrarMensagem('Digital não configurada neste aparelho.', 'error'); return; }
+            if (!reg || !reg.credId) { mostrarMensagem(thBioNome() === 'Face ID' ? 'Face ID não configurado neste aparelho.' : 'Digital não configurada neste aparelho.', 'error'); return; }
             try {
                 const cred = await navigator.credentials.get({
                     publicKey: {
@@ -4828,8 +4836,8 @@ function renderAdvertencias() {
                 iniciarSistema();
             } catch (e) {
                 console.warn('Digital não validada:', e);
-                if (e && e.name === 'NotAllowedError') mostrarMensagem('Digital cancelada ou não reconhecida.', 'error');
-                else mostrarMensagem('Não foi possível usar a digital. Entre com a senha.', 'error');
+                if (e && e.name === 'NotAllowedError') mostrarMensagem((thBioNome() === 'Face ID' ? 'Face ID cancelado ou não reconhecido.' : 'Digital cancelada ou não reconhecida.'), 'error');
+                else mostrarMensagem('Não foi possível usar a biometria. Entre com usuário e senha.', 'error');
             }
         }
         async function thAtivarDigital(usuario) {
@@ -4868,8 +4876,12 @@ function renderAdvertencias() {
             modal.innerHTML = `
                 <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl px-6 pt-7 pb-8">
                     <p class="text-sm font-bold text-gray-900">Facilite o acesso ao app</p>
-                    <h3 class="text-2xl font-extrabold text-gray-900 leading-snug mt-1">Ativar acesso ao app com a digital?</h3>
-                    <p class="text-sm text-gray-500 mt-2">Você toca em "Entrar com digital" e usa a biometria do celular, sem digitar a senha.</p>
+                    <h3 class="text-2xl font-extrabold text-gray-900 leading-snug mt-1">Ativar acesso ao app com ${thBioNome() === 'Face ID' ? 'o Face ID' : 'a digital'}?</h3>
+                    <p class="text-sm text-gray-500 mt-2">Você toca em "Entrar com ${thBioNome()}" e usa o desbloqueio do celular, sem digitar a senha.</p>
+                    <div class="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900 leading-relaxed space-y-1">
+                        <p><strong>Segurança:</strong> a biometria <strong>soma</strong> à senha, não a substitui. Usuário e senha continuam funcionando normalmente em qualquer aparelho.</p>
+                        <p>${thEhIOS() ? 'No iPhone o acesso rápido usa o <strong>Face ID</strong>.' : 'No Android o acesso rápido usa a <strong>digital</strong>.'} Ative só em aparelho pessoal: qualquer biometria cadastrada no celular poderá abrir este acesso.</p>
+                    </div>
                     <div class="flex items-center justify-between mt-5">
                         <span class="text-gray-600">Não perguntar novamente</span>
                         <label class="relative inline-flex items-center cursor-pointer">
