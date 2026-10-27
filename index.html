@@ -1715,7 +1715,9 @@
         }
         // fecha as listas ao clicar fora
         document.addEventListener('click', (ev) => {
-            if (ev.target.closest && ev.target.closest('.th-ms')) return;
+            // composedPath é fixado no momento do clique (o alvo pode ter sido recriado pelo render)
+            const caminho = ev.composedPath ? ev.composedPath() : [];
+            if (caminho.some(n => n && n.classList && n.classList.contains('th-ms'))) return;
             Object.keys(thMsConfig).forEach(k => {
                 const r = document.getElementById(thMsConfig[k].el);
                 if (r && r.dataset.aberto === '1') { r.dataset.aberto = '0'; thMsRender(k); }
