@@ -1664,6 +1664,11 @@
             const raiz = document.getElementById(cfg.el);
             if (!raiz) return;
             const aberto = raiz.dataset.aberto === '1';
+            // guarda a rolagem da lista e o item focado para não "subir" ao marcar uma caixa
+            const listaAnt = raiz.querySelector('.th-ms-lista');
+            const rolagem = listaAnt ? listaAnt.scrollTop : 0;
+            const foco = document.activeElement;
+            const focoIdx = (foco && raiz.contains(foco) && foco.dataset && foco.dataset.i !== undefined) ? foco.dataset.i : null;
             const itens = cfg.itens();
             const sel = thFiltros[chave];
             // remove seleções que não existem mais (ex.: demanda editada/excluída)
@@ -1675,10 +1680,10 @@
                     <svg class="w-4 h-4 flex-shrink-0 text-gray-500 transition-transform ${aberto ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                 </button>
                 <div class="th-ms-painel ${aberto ? '' : 'hidden'} absolute z-30 mt-1 w-full min-w-[14rem] bg-white border border-gray-200 rounded-lg shadow-xl">
-                    <div class="max-h-56 overflow-y-auto py-1">
+                    <div class="th-ms-lista max-h-56 overflow-y-auto py-1">
                         ${itens.length ? itens.map((i, n) => `
                             <label class="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-800 hover:bg-purple-50 cursor-pointer">
-                                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-400" ${sel.has(i.valor) ? 'checked' : ''} onchange="thMsMarcar('${chave}', ${n}, this.checked)">
+                                <input type="checkbox" data-i="${n}" class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-400" ${sel.has(i.valor) ? 'checked' : ''} onchange="thMsMarcar('${chave}', ${n}, this.checked)">
                                 <span class="min-w-0 break-words">${esc(i.rotulo)}</span>
                             </label>`).join('') : '<p class="px-3 py-3 text-sm text-gray-400">Nenhuma opção disponível</p>'}
                     </div>
@@ -1688,6 +1693,12 @@
                     </div>
                 </div>`;
             raiz.style.position = 'relative';
+            const listaNova = raiz.querySelector('.th-ms-lista');
+            if (listaNova && rolagem) listaNova.scrollTop = rolagem;
+            if (focoIdx !== null) {
+                const c = raiz.querySelector(`input[data-i="${focoIdx}"]`);
+                if (c) c.focus({ preventScroll: true });
+            }
         }
 
         function thMsAlternar(chave) {
@@ -3673,7 +3684,192 @@
             `;
         }
 
+        // ====== RESUMO DO RELATÓRIO (cards, gráficos e análise) ======
+        const TH_MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        const TH_DIAS_SEMANA = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+        const TH_CORES_PIZZA = ['#7c3aed', '#0ea5e9', '#14b8a6', '#f59e0b', '#ef4444', '#22c55e', '#ec4899', '#6366f1', '#94a3b8'];
+
+        function thContar(lista, fn) {
+            const mapa = new Map();
+            lista.forEach(d => {
+                const k = fn(d);
+                if (!k) return;
+                const chave = String(k).trim().toUpperCase();
+                const reg = mapa.get(chave) || { nome: String(k).trim(), n: 0 };
+                reg.n++; mapa.set(chave, reg);
+            });
+            return [...mapa.values()].sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome, 'pt-BR'));
+        }
+        const thPct = (n, t) => t ? (n * 100 / t).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%' : '0%';
+        function thMesRotulo(chave) { const [a, m] = chave.split('-'); return TH_MESES_CURTOS[parseInt(m) - 1] + '/' + a; }
+
+        function thCalcularResumo(lista) {
+            const total = lista.length;
+            const porSetor = thContar(lista, d => d.setor);
+            const porSolic = thContar(lista, d => d.solicitante);
+            const porDestino = thContar(lista, d => d.destino);
+            const porMotorista = thContar(lista, d => d.nomeMotorista);
+            const porPlaca = thContar(lista, d => d.placaVeiculo);
+
+            // série mensal (preenche meses sem demanda com zero)
+            const contMes = {};
+            lista.forEach(d => { const k = String(d.dataDemanda || '').slice(0, 7); if (k.length === 7) contMes[k] = (contMes[k] || 0) + 1; });
+            const chaves = Object.keys(contMes).sort();
+            const meses = [];
+            if (chaves.length) {
+                let [a, m] = chaves[0].split('-').map(Number);
+                const [af, mf] = chaves[chaves.length - 1].split('-').map(Number);
+                while (a < af || (a === af && m <= mf)) {
+                    meses.push(`${a}-${String(m).padStart(2, '0')}`);
+                    m++; if (m > 12) { m = 1; a++; }
+                }
+            }
+            const serieMes = meses.map(k => contMes[k] || 0);
+            let mesPico = null;
+            serieMes.forEach((v, i) => { if (!mesPico || v > mesPico.n) mesPico = { chave: meses[i], n: v }; });
+
+            const turnos = { manha: 0, tarde: 0, noite: 0 };
+            lista.forEach(d => { turnos[thTurnoDaHora(d.horario)]++; });
+            const turnoTop = Object.entries(turnos).sort((a, b) => b[1] - a[1])[0];
+
+            const diasSem = new Array(7).fill(0);
+            lista.forEach(d => { if (d.dataDemanda) diasSem[criarDataBrasilia(d.dataDemanda).getDay()]++; });
+            const diaTopIdx = diasSem.indexOf(Math.max(...diasSem));
+
+            const datas = lista.map(d => d.dataDemanda).filter(Boolean).sort();
+            const comSei = lista.filter(d => d.numeroSei && String(d.numeroSei).trim()).length;
+            return { total, porSetor, porSolic, porDestino, porMotorista, porPlaca, meses, serieMes, mesPico, turnos, turnoTop, diasSem, diaTopIdx, datas, comSei };
+        }
+
+        function thTextoResumo(r) {
+            const { total } = r;
+            const nomeTurno = { manha: 'manhã', tarde: 'tarde', noite: 'noite' };
+            const lista = (arr, n) => arr.slice(0, n).map(x => `<strong>${esc(x.nome)}</strong> (${x.n})`).join(', ');
+            const quant = [], qual = [];
+
+            const periodo = r.datas.length ? `entre ${formatarDataBrasil(r.datas[0])} e ${formatarDataBrasil(r.datas[r.datas.length - 1])}` : 'no período';
+            quant.push(`No recorte filtrado foram concluídas <strong>${total}</strong> demanda(s) ${periodo}, distribuídas em <strong>${r.porSetor.length}</strong> setor(es) e <strong>${r.porSolic.length}</strong> solicitante(s).`);
+            if (r.porSetor.length) {
+                const t = r.porSetor[0];
+                quant.push(`O setor mais atendido foi <strong>${esc(t.nome)}</strong>, com <strong>${t.n}</strong> demanda(s) (${thPct(t.n, total)} do total)${r.porSetor.length > 1 ? `, seguido de ${lista(r.porSetor.slice(1), 2)}` : ''}.`);
+            }
+            if (r.meses.length) {
+                const media = (total / r.meses.length).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+                quant.push(`A média foi de <strong>${media}</strong> demanda(s) por mês em ${r.meses.length} mês(es); o maior volume ocorreu em <strong>${thMesRotulo(r.mesPico.chave)}</strong> (${r.mesPico.n}).`);
+            }
+            if (r.meses.length >= 2) {
+                const a = r.serieMes[r.serieMes.length - 2], b = r.serieMes[r.serieMes.length - 1];
+                const ult = thMesRotulo(r.meses[r.meses.length - 1]), pen = thMesRotulo(r.meses[r.meses.length - 2]);
+                if (a === 0) quant.push(`Em ${ult} foram ${b} demanda(s), contra nenhuma em ${pen}.`);
+                else {
+                    const v = (b - a) * 100 / a;
+                    quant.push(`Em ${ult} foram ${b} demanda(s) contra ${a} em ${pen}: ${Math.abs(v) < 0.5 ? 'volume estável' : (v > 0 ? 'alta' : 'queda') + ' de ' + Math.abs(v).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%'} (o último mês do recorte pode estar incompleto).`);
+                }
+            }
+
+            qual.push(`O turno predominante foi a <strong>${nomeTurno[r.turnoTop[0]]}</strong>, com ${thPct(r.turnoTop[1], total)} das demandas (manhã ${r.turnos.manha}, tarde ${r.turnos.tarde}, noite ${r.turnos.noite}).`);
+            if (r.diasSem[r.diaTopIdx] > 0) qual.push(`O dia da semana mais demandado foi <strong>${TH_DIAS_SEMANA[r.diaTopIdx]}</strong> (${r.diasSem[r.diaTopIdx]}).`);
+            if (r.porSetor.length >= 3) {
+                const top3 = r.porSetor.slice(0, 3).reduce((s, x) => s + x.n, 0);
+                qual.push(`Os 3 setores com mais demandas concentram <strong>${thPct(top3, total)}</strong> do total, o que indica ${top3 * 100 / total >= 70 ? 'alta concentração do uso do transporte' : 'uso relativamente distribuído entre os setores'}.`);
+            }
+            if (r.porSolic.length) qual.push(`Solicitantes mais frequentes: ${lista(r.porSolic, 3)}.`);
+            if (r.porDestino.length) qual.push(`Destinos mais recorrentes: ${lista(r.porDestino, 3)}.`);
+            if (r.porMotorista.length) qual.push(`Motorista mais acionado: ${lista(r.porMotorista, 1)}${r.porPlaca.length ? `; veículo mais utilizado: ${lista(r.porPlaca, 1)}` : ''}.`);
+            qual.push(`<strong>${r.comSei}</strong> de ${total} demanda(s) (${thPct(r.comSei, total)}) possuem Nº SEI informado${r.comSei < total ? `; ${total - r.comSei} sem registro de SEI merecem conferência` : ''}.`);
+            return { quant, qual };
+        }
+
+        function gerarResumoRelatorio() {
+            const lista = getDemandasConcluidas();
+            if (!lista.length) return { html: '', dados: null };
+            const r = thCalcularResumo(lista);
+            const t = thTextoResumo(r);
+            const setorTop = r.porSetor[0];
+            const turnoNome = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }[r.turnoTop[0]];
+
+            // pizza: até 8 setores + "Outros"
+            let fatias = r.porSetor.slice(0, 8).map(x => ({ nome: x.nome, n: x.n }));
+            const resto = r.porSetor.slice(8).reduce((s, x) => s + x.n, 0);
+            if (resto) fatias.push({ nome: 'Outros', n: resto });
+
+            const card = (rot, val, sub, cor) => `<div class="card-resumo bg-white rounded-xl border border-gray-200 shadow-sm p-4 border-l-4" style="border-left-color:${cor}">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">${rot}</p>
+                <p class="text-3xl font-extrabold text-gray-900 mt-1 leading-tight">${val}</p>
+                <p class="text-xs text-gray-500 mt-1">${sub}</p></div>`;
+
+            const linhasRank = r.porSetor.map((x, i) => `<tr class="border-t border-gray-100"><td class="py-1.5 pr-2 text-gray-500">${i + 1}º</td><td class="py-1.5 pr-2 font-medium text-gray-800">${esc(x.nome)}</td><td class="py-1.5 pr-2 text-right font-bold">${x.n}</td><td class="py-1.5 text-right text-gray-500">${thPct(x.n, r.total)}</td></tr>`).join('');
+
+            const html = `
+                <div class="mt-4 space-y-4">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        ${card('Total de demandas', r.total, 'concluídas no recorte filtrado', '#7c3aed')}
+                        ${card('Setor mais atendido', esc(setorTop.nome), `${setorTop.n} demanda(s) · ${thPct(setorTop.n, r.total)}`, '#0ea5e9')}
+                        ${card('Mês de maior volume', thMesRotulo(r.mesPico.chave), `${r.mesPico.n} demanda(s)`, '#14b8a6')}
+                        ${card('Turno predominante', turnoNome, `${thPct(r.turnoTop[1], r.total)} das demandas`, '#f59e0b')}
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                        <div class="card-resumo lg:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                            <h3 class="text-sm font-bold text-gray-800 mb-3">Demandas por mês</h3>
+                            <div style="position:relative;height:260px"><canvas id="graficoMensal"></canvas></div>
+                        </div>
+                        <div class="card-resumo lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                            <h3 class="text-sm font-bold text-gray-800 mb-3">Setores atendidos</h3>
+                            <div style="position:relative;height:260px"><canvas id="graficoSetores"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                        <div class="card-resumo lg:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                            <h3 class="text-sm font-bold text-gray-800 mb-2">Resumo quantitativo</h3>
+                            <ul class="list-disc pl-5 space-y-1.5 text-sm text-gray-700 leading-relaxed">${t.quant.map(x => `<li>${x}</li>`).join('')}</ul>
+                            <h3 class="text-sm font-bold text-gray-800 mt-5 mb-2">Resumo qualitativo</h3>
+                            <ul class="list-disc pl-5 space-y-1.5 text-sm text-gray-700 leading-relaxed">${t.qual.map(x => `<li>${x}</li>`).join('')}</ul>
+                        </div>
+                        <div class="card-resumo lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                            <h3 class="text-sm font-bold text-gray-800 mb-2">Ranking de setores</h3>
+                            <table class="w-full text-sm"><tbody>${linhasRank}</tbody></table>
+                        </div>
+                    </div>
+                </div>`;
+            return { html, dados: { meses: r.meses.map(thMesRotulo), serieMes: r.serieMes, fatias, cores: TH_CORES_PIZZA } };
+        }
+
+        // Script que roda dentro da janela do relatório e desenha os gráficos
+        function thScriptGraficos(dados) {
+            if (!dados) return '';
+            const json = JSON.stringify(dados).replace(/</g, '\\u003c');
+            return `
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
+                <script>
+                    (function () {
+                        var d = ${json};
+                        function desenhar() {
+                            try {
+                                if (typeof Chart === 'undefined') { setTimeout(desenhar, 150); return; }
+                                Chart.defaults.animation = false;
+                                new Chart(document.getElementById('graficoMensal'), {
+                                    type: 'bar',
+                                    data: { labels: d.meses, datasets: [{ label: 'Demandas', data: d.serieMes, backgroundColor: '#7c3aed', borderRadius: 6 }] },
+                                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } }
+                                });
+                                var total = d.fatias.reduce(function (s, f) { return s + f.n; }, 0);
+                                new Chart(document.getElementById('graficoSetores'), {
+                                    type: 'doughnut',
+                                    data: { labels: d.fatias.map(function (f) { return f.nome + ' (' + f.n + ' · ' + Math.round(f.n * 100 / total) + '%)'; }),
+                                        datasets: [{ data: d.fatias.map(function (f) { return f.n; }), backgroundColor: d.fatias.map(function (f, i) { return f.nome === 'Outros' ? '#94a3b8' : d.cores[i % d.cores.length]; }), borderWidth: 2, borderColor: '#fff' }] },
+                                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+                                });
+                                window.__graficosProntos = true;
+                            } catch (e) { console.error(e); window.__graficosProntos = true; }
+                        }
+                        desenhar();
+                    })();
+                <\/script>`;
+        }
+
         function gerarEstruturaPagina(titulo, botoesExtras = '', scriptExtra = '') {
+            const resumo = gerarResumoRelatorio();
             const turno = esc(thResumoFiltro('turno'));
             const setor = esc(thResumoFiltro('setor'));
             const solicitante = esc(thResumoFiltro('solicitante'));
@@ -3691,6 +3887,8 @@
                         .container { max-width: 1200px; margin: 0 auto; }
                         @media print {
                             .no-print { display: none !important; }
+                            .card-resumo { break-inside: avoid; box-shadow: none !important; }
+                            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                             body { background-color: white; padding: 0; }
                             .container { max-width: 100%; box-shadow: none; border: none; }
                             table { page-break-inside: auto; }
@@ -3722,6 +3920,7 @@
                             <span><strong>Solicitante:</strong> ${solicitante}</span>
                             <span><strong>Datas:</strong> ${datas}</span>
                         </div>
+                        ${resumo.html}
                         <div class="mt-4 shadow-lg rounded-xl overflow-hidden border border-gray-200">
                             ${gerarTabelaRelatorio()}
                         </div>
@@ -3729,6 +3928,7 @@
                             Total de registros exportados: <strong>${getDemandasConcluidas().length}</strong>
                         </div>
                     </div>
+                    ${thScriptGraficos(resumo.dados)}
                     ${scriptExtra}
                 </body>
                 </html>
@@ -3746,7 +3946,200 @@
             const janela = window.open('', '_blank');
             janela.document.write(gerarEstruturaPagina('Relatório de Demandas Concluídas (Pronto para PDF)'));
             janela.document.close();
-            setTimeout(() => { janela.print(); }, 1000);
+            // espera os gráficos serem desenhados (até ~8 s) antes de abrir a impressão
+            let tentativas = 0;
+            const aguardar = setInterval(() => {
+                tentativas++;
+                let pronto = false;
+                try { pronto = janela.__graficosProntos === true || !janela.document.getElementById('graficoMensal'); } catch (e) { pronto = true; }
+                if (pronto || tentativas > 40) { clearInterval(aguardar); setTimeout(() => { try { janela.print(); } catch (e) {} }, 300); }
+            }, 200);
+        }
+
+        // ====== EXCEL CORPORATIVO (.xlsx formatado, com gráficos) ======
+        // Reaproveita o mesmo resumo, as mesmas cores e os mesmos gráficos do relatório do site.
+        function thPrepararExcel() {
+            const lista = getDemandasConcluidas();
+            if (!lista.length) return null;
+            const r = thCalcularResumo(lista), t = thTextoResumo(r);
+            const nomeTurno = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' };
+            const topo = r.porSetor[0];
+            const fatias = r.porSetor.slice(0, 8).map(x => ({ nome: x.nome, n: x.n }));
+            const resto = r.porSetor.slice(8).reduce((s, x) => s + x.n, 0);
+            if (resto) fatias.push({ nome: 'Outros', n: resto });
+            return {
+                titulo: 'Relatório de Demandas Concluídas',
+                gerado: new Date().toLocaleString('pt-BR'),
+                filtros: ['turno', 'setor', 'solicitante', 'datas'].map(k => thResumoFiltro(k)),
+                total: r.total,
+                kpis: [
+                    ['Total de demandas', String(r.total), 'concluídas no recorte filtrado', '7C3AED'],
+                    ['Setor mais atendido', topo.nome, `${topo.n} demanda(s) · ${thPct(topo.n, r.total)}`, '0EA5E9'],
+                    ['Mês de maior volume', thMesRotulo(r.mesPico.chave), `${r.mesPico.n} demanda(s)`, '14B8A6'],
+                    ['Turno predominante', nomeTurno[r.turnoTop[0]], `${thPct(r.turnoTop[1], r.total)} das demandas`, 'F59E0B']
+                ],
+                quant: t.quant, qual: t.qual,
+                meses: r.meses.map(thMesRotulo), serieMes: r.serieMes, fatias, cores: TH_CORES_PIZZA,
+                ranking: r.porSetor.slice(0, 10),
+                rows: lista.map(d => ({
+                    data: d.dataDemanda || '', dia: d.dataDemanda ? TH_DIAS_SEMANA[criarDataBrasilia(d.dataDemanda).getDay()] : '',
+                    hora: d.horario || '', turno: nomeTurno[thTurnoDaHora(d.horario)], solicitante: d.solicitante || '', setor: d.setor || '',
+                    partida: d.partida || '', destino: d.destino || '', motorista: d.nomeMotorista || '', placa: d.placaVeiculo || '',
+                    sei: d.numeroSei || '', cad: d.cadastradoPor || '', baixa: d.concluidoPor || ''
+                }))
+            };
+        }
+
+        // Roda dentro da janela do relatório (por isso não usa nada de fora): recebe os dados e devolve o .xlsx
+        async function thXlsxGerar(X, deps) {
+            const wb = new deps.ExcelJS.Workbook();
+            wb.creator = 'TransportHub · SEMCAS'; wb.created = new Date();
+            const F = 'Calibri', LET = 'ABCDEFGHIJKLMNOPQ';
+            const fill = c => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + c } });
+            const thin = { style: 'thin', color: { argb: 'FFE5E7EB' } };
+            const cor = c => ({ argb: 'FF' + c });
+            const ws = wb.addWorksheet('Resumo', { properties: { tabColor: cor('7C3AED') }, views: [{ showGridLines: false }],
+                pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+                headerFooter: { oddFooter: '&L&8TransportHub · SEMCAS&R&8Página &P de &N' } });
+            [2, 12, 12, 12, 2, 12, 12, 12, 2, 12, 12, 12, 2, 12, 12, 12, 2].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+
+            const rc = a => [parseInt(a.slice(1), 10), LET.indexOf(a[0]) + 1];
+            const area = (rng, fn) => { const [a, b] = rng.split(':'); const [r1, c1] = rc(a), [r2, c2] = rc(b || a);
+                for (let y = r1; y <= r2; y++) for (let x = c1; x <= c2; x++) fn(ws.getCell(y, x), y, x, r1, r2, c1, c2); };
+            const put = (rng, val, o) => {
+                const [a, b] = rng.split(':');
+                if (b && a !== b) ws.mergeCells(rng);
+                area(rng, c => { if (o.fill) c.fill = fill(o.fill); });
+                const c = ws.getCell(a); c.value = val;
+                c.font = Object.assign({ name: F, size: 10 }, o.font || {});
+                c.alignment = Object.assign({ vertical: 'middle', wrapText: true }, o.al || {});
+            };
+            const borda = (rng, e) => area(rng, (c, y, x, r1, r2, c1, c2) => {
+                const b = Object.assign({}, c.border);
+                if (y === r1) b.top = e; if (y === r2) b.bottom = e; if (x === c1) b.left = e; if (x === c2) b.right = e; c.border = b; });
+            const plano = h => String(h).replace(/<[^>]+>/g, '');
+            const rica = h => ({ richText: String(h).split(/(<strong>.*?<\/strong>)/).filter(Boolean).map(p => ({
+                font: { name: F, size: 10, bold: p.indexOf('<strong>') === 0, color: cor('374151') },
+                text: plano(p).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'") })) });
+            const alt = (h, cpl) => Math.max(20, Math.ceil(plano(h).length / cpl) * 14 + 8);
+            const H = (y, h) => { ws.getRow(y).height = h; };
+
+            // Cabeçalho (mesma identidade do relatório: faixa slate + detalhe roxo)
+            [[2, 'TRANSPORTE & DEMANDAS — SEMCAS', 18, 'FFFFFF', 38, true], [3, X.titulo, 12, 'E5E7EB', 22, false], [4, 'Gerado em ' + X.gerado + ' por TransportHub', 9, '9CA3AF', 18, false]]
+                .forEach(([y, tx, sz, c, h, b]) => { put(`B${y}:P${y}`, tx, { fill: '1F2937', font: { size: sz, bold: b, color: cor(c) }, al: { indent: 1 } }); H(y, h); });
+            put('B5:P5', '', { fill: '7C3AED' }); H(1, 8); H(5, 5); H(6, 8);
+
+            // Filtros aplicados
+            ['Turno', 'Setor', 'Solicitante', 'Datas'].forEach((n, i) => { const c0 = 'BFJN'[i], c2 = LET[LET.indexOf(c0) + 2];
+                put(`${c0}7:${c2}7`, { richText: [{ font: { name: F, size: 10, bold: true, color: cor('4C1D95') }, text: n + ': ' }, { font: { name: F, size: 10, color: cor('4C1D95') }, text: X.filtros[i] }] }, { fill: 'F5F3FF', al: { indent: 1 } }); });
+            ['E', 'I', 'M'].forEach(c => { ws.getCell(c + '7').fill = fill('F5F3FF'); });
+            H(7, Math.max(24, ...X.filtros.map(t => Math.ceil(t.length / 34) * 14 + 10)));
+            H(8, 10);
+
+            // Cartões de KPI
+            X.kpis.forEach((k, i) => { const c0 = 'BFJN'[i], c2 = LET[LET.indexOf(c0) + 2], al = { indent: 1, horizontal: 'left', shrinkToFit: true, wrapText: false };
+                put(`${c0}9:${c2}9`, k[0].toUpperCase(), { fill: 'FFFFFF', font: { size: 9, bold: true, color: cor('6B7280') }, al });
+                put(`${c0}10:${c2}10`, k[1], { fill: 'FFFFFF', font: { size: k[1].length > 14 ? 15 : 24, bold: true, color: cor('111827') }, al });
+                put(`${c0}11:${c2}11`, k[2], { fill: 'FFFFFF', font: { size: 9, color: cor('6B7280') }, al });
+                borda(`${c0}9:${c2}11`, thin);
+                area(`${c0}9:${c0}11`, c => { c.border = Object.assign({}, c.border, { left: { style: 'thick', color: cor(k[3]) } }); }); });
+            H(9, 20); H(10, 36); H(11, 20); H(12, 12);
+
+            // Gráficos (renderizados com o mesmo Chart.js do site)
+            const rot = { id: 'rot', afterDatasetsDraw(ch) { const c = ch.ctx; c.save(); c.fillStyle = '#374151'; c.font = 'bold 22px sans-serif'; c.textAlign = 'center';
+                ch.getDatasetMeta(0).data.forEach((b, i) => { const v = ch.data.datasets[0].data[i]; if (v) c.fillText(v, b.x, b.y - 8); }); c.restore(); } };
+            const eixo = { ticks: { font: { size: 20 }, precision: 0 }, grid: { color: '#E5E7EB' } };
+            const cfgMes = { type: 'bar', plugins: [rot], data: { labels: X.meses, datasets: [{ data: X.serieMes, backgroundColor: '#7c3aed', borderRadius: 10 }] },
+                options: { layout: { padding: { top: 32 } }, plugins: { legend: { display: false } }, scales: { y: Object.assign({ beginAtZero: true }, eixo), x: { grid: { display: false }, ticks: { font: { size: 20 } } } } } };
+            const cfgSet = { type: 'doughnut', data: { labels: X.fatias.map(f => (f.nome.length > 24 ? f.nome.slice(0, 23) + '…' : f.nome) + ' (' + f.n + ' · ' + Math.round(f.n * 100 / X.total) + '%)'),
+                datasets: [{ data: X.fatias.map(f => f.n), backgroundColor: X.fatias.map((f, i) => f.nome === 'Outros' ? '#94a3b8' : X.cores[i % X.cores.length]), borderWidth: 3, borderColor: '#ffffff' }] },
+                options: { plugins: { legend: { position: 'right', labels: { boxWidth: 22, font: { size: 17 } } } } } };
+            const painel = (c1, c2, y1, y2, titulo) => { put(`${c1}${y1}:${c2}${y1}`, titulo, { fill: 'FFFFFF', font: { size: 11, bold: true, color: cor('111827') }, al: { indent: 1 } });
+                area(`${c1}${y1 + 1}:${c2}${y2}`, c => { c.fill = fill('FFFFFF'); }); borda(`${c1}${y1}:${c2}${y2}`, thin); H(y1, 26); };
+            painel('B', 'H', 13, 30, 'Demandas por mês'); painel('J', 'P', 13, 30, 'Setores atendidos');
+            [[cfgMes, 1], [cfgSet, 9]].forEach(([cfg, col]) => { const id = wb.addImage({ base64: deps.renderChart(cfg, 1082, 620).split(',')[1], extension: 'png' });
+                ws.addImage(id, { tl: { col: col + 0.07, row: 13.25 }, ext: { width: 541, height: 310 } }); });
+            H(31, 12);
+
+            // Resumos (esquerda) e ranking de setores (direita), como no relatório do site
+            const y0 = 32; let y = y0;
+            [['Resumo quantitativo', X.quant], ['Resumo qualitativo', X.qual]].forEach(([tit, lista]) => {
+                put(`B${y}:H${y}`, tit, { fill: 'FFFFFF', font: { size: 11, bold: true, color: cor('111827') }, al: { indent: 1 } }); H(y, 26); y++;
+                lista.forEach(h => { put(`B${y}:H${y}`, rica('•  ' + h), { fill: 'FFFFFF', al: { vertical: 'top', indent: 1 } }); H(y, alt(h, 78)); y++; });
+                put(`B${y}:H${y}`, '', { fill: 'FFFFFF' }); H(y, 10); y++;
+            });
+            const yEnd = Math.max(y - 1, y0 + X.ranking.length + 1);
+            if (yEnd >= y) area(`B${y}:H${yEnd}`, c => { c.fill = fill('FFFFFF'); });
+            borda(`B${y0}:H${yEnd}`, thin);
+            painel('J', 'P', y0, yEnd, 'Ranking de setores');
+            X.ranking.forEach((s, i) => { const q = y0 + 1 + i;
+                put(`J${q}`, (i + 1) + 'º', { fill: 'FFFFFF', font: { color: cor('6B7280') }, al: { horizontal: 'center' } });
+                put(`K${q}:N${q}`, s.nome, { fill: 'FFFFFF', font: { size: 10, color: cor('1F2937') }, al: { indent: 1, wrapText: false, shrinkToFit: true } });
+                put(`O${q}`, s.n, { fill: 'FFFFFF', font: { bold: true }, al: { horizontal: 'center' } });
+                put(`P${q}`, s.n / X.total, { fill: 'FFFFFF', font: { color: cor('6B7280') }, al: { horizontal: 'center' } });
+                ws.getCell(`P${q}`).numFmt = '0%'; });
+            ws.addConditionalFormatting({ ref: `O${y0 + 1}:O${y0 + X.ranking.length}`, rules: [{ type: 'dataBar', gradient: false, cfvo: [{ type: 'min' }, { type: 'max' }], color: cor('C4B5FD') }] });
+            H(yEnd + 1, 12);
+
+            // Lista de demandas dentro do próprio relatório (igual à tabela do relatório no site)
+            const T = yEnd + 2;
+            put(`B${T}:P${T}`, 'Demandas concluídas (' + X.rows.length + ')', { fill: 'FFFFFF', font: { size: 11, bold: true, color: cor('111827') }, al: { indent: 1 } }); H(T, 26);
+            const mix = (a, b, t) => [0, 2, 4].map(k => Math.round(parseInt(a.substr(k, 2), 16) + (parseInt(b.substr(k, 2), 16) - parseInt(a.substr(k, 2), 16)) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
+            const grad = t => t < 0.5 ? mix('1F2937', '374151', t * 2) : mix('374151', '6B7280', (t - 0.5) * 2);
+            const G = [['B', 'B', 'Data'], ['C', 'C', 'Hora'], ['D', 'F', 'Solicitante / Setor'], ['G', 'I', 'Partida'], ['J', 'K', 'Destino'], ['L', 'M', 'Motorista'], ['N', 'N', 'Placa'], ['O', 'O', 'Nº SEI'], ['P', 'P', 'Operador']];
+            G.forEach((g, gi) => put(`${g[0]}${T + 1}:${g[1]}${T + 1}`, g[2].toUpperCase(), { fill: grad(gi / (G.length - 1)), font: { size: 9, bold: true, color: cor('FFFFFF') }, al: { horizontal: 'center' } })); H(T + 1, 24);
+            X.rows.forEach((d, i) => { const q = T + 2 + i, bg = i % 2 ? 'F9FAFB' : 'FFFFFF', dd = (d.data || '').split('-'), c = { horizontal: 'center' };
+                const cel = (k, val, o) => put(`${G[k][0]}${q}:${G[k][1]}${q}`, val, Object.assign({ fill: bg }, o || {}));
+                cel(0, dd.length === 3 ? dd[2] + '/' + dd[1] + '/' + dd[0] : d.data, { al: c });
+                cel(1, d.hora || '-', { al: c, font: { size: 10, bold: true } });
+                cel(2, { richText: [{ font: { name: F, size: 10, bold: true, color: cor('1F2937') }, text: d.solicitante || '-' }, { font: { name: F, size: 8, color: cor('6B7280') }, text: '\n' + (d.setor || '') }] }, { al: { indent: 1 } });
+                cel(3, d.partida || '-', { al: { indent: 1 } }); cel(4, d.destino || '-', { al: { indent: 1 } }); cel(5, d.motorista || '-', { al: { indent: 1 }, font: { size: 10, bold: true } });
+                cel(6, d.placa || '-', { al: c }); cel(7, d.sei || '-', { al: c }); cel(8, { richText: [{ font: { name: F, size: 8, color: cor('4B5563') }, text: 'Cad: ' + (d.cad || '-') + '\nBaixa: ' + (d.baixa || '-') }] }, { al: { indent: 1 } });
+                area(`B${q}:P${q}`, e => { e.border = { bottom: thin }; }); H(q, 32); });
+            const fim = T + 2 + X.rows.length;
+            for (let q = 1; q <= fim + 1; q++) for (let c = 1; c <= 17; c++) { const cel = ws.getCell(q, c); if (!cel.fill) cel.fill = fill('F3F4F6'); }
+
+            // Aba com a tabela completa (filtrável)
+            const w2 = wb.addWorksheet('Demandas', { properties: { tabColor: cor('1F2937') }, views: [{ state: 'frozen', ySplit: 4, showGridLines: false }],
+                pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '4:4' },
+                headerFooter: { oddFooter: '&L&8TransportHub · SEMCAS&R&8Página &P de &N' } });
+            const cols = [['Data', 12], ['Dia', 15], ['Hora', 8], ['Turno', 10], ['Solicitante', 28], ['Setor', 30], ['Partida', 28], ['Destino', 28], ['Motorista', 24], ['Placa', 11], ['Nº SEI', 22], ['Cadastrado por', 18], ['Baixa por', 18]];
+            cols.forEach((c, i) => { w2.getColumn(i + 1).width = c[1]; });
+            const faixa = (y, tx, sz, c, h, b) => { w2.mergeCells(y, 1, y, 13); const e = w2.getCell(y, 1); e.value = tx; e.font = { name: F, size: sz, bold: b, color: cor(c) };
+                e.alignment = { vertical: 'middle', indent: 1 }; for (let x = 1; x <= 13; x++) w2.getCell(y, x).fill = fill('1F2937'); w2.getRow(y).height = h; };
+            faixa(1, 'TRANSPORTE & DEMANDAS — SEMCAS · Demandas concluídas', 15, 'FFFFFF', 32, true);
+            faixa(2, 'Gerado em ' + X.gerado + ' · Turno: ' + X.filtros[0] + ' · Setor: ' + X.filtros[1].slice(0, 80) + ' · Solicitante: ' + X.filtros[2].slice(0, 80) + ' · Datas: ' + X.filtros[3].slice(0, 80), 9, '9CA3AF', 20, false);
+            for (let x = 1; x <= 13; x++) w2.getCell(3, x).fill = fill('7C3AED'); w2.getRow(3).height = 4;
+            cols.forEach((c, i) => { const e = w2.getCell(4, i + 1); e.value = c[0].toUpperCase(); e.fill = fill('374151'); e.font = { name: F, size: 10, bold: true, color: cor('FFFFFF') };
+                e.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; e.border = { bottom: { style: 'medium', color: cor('7C3AED') } }; });
+            w2.getRow(4).height = 28;
+            X.rows.forEach((d, i) => { const y = 5 + i, p = (d.data || '').split('-').map(Number);
+                const v = [p.length === 3 && p[0] ? new Date(Date.UTC(p[0], p[1] - 1, p[2])) : d.data, d.dia, d.hora, d.turno, d.solicitante, d.setor, d.partida, d.destino, d.motorista, d.placa, d.sei, d.cad, d.baixa];
+                v.forEach((val, j) => { const e = w2.getCell(y, j + 1); e.value = val === '' ? null : val; e.font = { name: F, size: 10, color: cor('1F2937') }; e.fill = fill(i % 2 ? 'F9FAFB' : 'FFFFFF');
+                    e.border = { top: thin, bottom: thin, left: thin, right: thin }; e.alignment = { vertical: 'middle', wrapText: true, horizontal: [0, 2, 3, 9].indexOf(j) >= 0 ? 'center' : 'left' }; });
+                w2.getCell(y, 1).numFmt = 'dd/mm/yyyy'; });
+            const ult = 4 + X.rows.length;
+            w2.autoFilter = { from: { row: 4, column: 1 }, to: { row: ult, column: 13 } };
+            w2.mergeCells(ult + 1, 1, ult + 1, 3);
+            for (let x = 1; x <= 13; x++) { const e = w2.getCell(ult + 1, x); e.fill = fill('EDE9FE'); e.font = { name: F, size: 10, bold: true, color: cor('4C1D95') }; }
+            w2.getCell(ult + 1, 1).value = 'Total de registros (respeita o filtro)';
+            w2.getCell(ult + 1, 4).value = { formula: `SUBTOTAL(103,E5:E${ult})`, result: X.rows.length }; w2.getCell(ult + 1, 4).alignment = { horizontal: 'center' };
+            const turno = (t, bg, fg) => ({ type: 'cellIs', operator: 'equal', formulae: ['"' + t + '"'], style: { font: { bold: true, color: cor(fg) }, fill: { type: 'pattern', pattern: 'solid', bgColor: cor(bg) } } });
+            w2.addConditionalFormatting({ ref: `D5:D${ult}`, rules: [turno('Manhã', 'FEF3C7', '92400E'), turno('Tarde', 'E0F2FE', '075985'), turno('Noite', 'E0E7FF', '3730A3')] });
+            return await wb.xlsx.writeBuffer();
+        }
+
+        // Cria o gráfico fora da tela (mesmo Chart.js do relatório) e devolve a imagem PNG
+        function thXlsxDeps() {
+            return {
+                ExcelJS: window.ExcelJS,
+                renderChart: function (cfg, w, h) {
+                    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                    cfg.options = Object.assign({ responsive: false, animation: false, devicePixelRatio: 1 }, cfg.options || {});
+                    cfg.plugins = (cfg.plugins || []).concat([{ id: 'fundo', beforeDraw: function (c) { c.ctx.fillStyle = '#ffffff'; c.ctx.fillRect(0, 0, c.width, c.height); } }]);
+                    var ch = new Chart(cv, cfg); var url = cv.toDataURL('image/png'); ch.destroy(); return url;
+                }
+            };
         }
 
         function gerarViewExcel() {
@@ -3756,19 +4149,38 @@
                     Download Excel
                 </button>
             `;
+            let payload = null;
+            try { payload = thPrepararExcel(); } catch (e) { console.error('Excel: falha ao preparar os dados', e); }
+            const json = JSON.stringify(payload).replace(/</g, '\\u003c');
             const scriptExcel = `
+                <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>
                 <script>
-                    function baixarExcel() {
-                        const tabela = document.getElementById('tabelaRelatorio').outerHTML;
-                        const htmlBase = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body>' + tabela + '</body></html>';
-                        const blob = new Blob([htmlBase], { type: 'application/vnd.ms-excel' });
+                    var XL = ${json};
+                    ${thXlsxGerar.toString()}
+                    ${thXlsxDeps.toString()}
+                    function salvarArquivo(blob, nome) {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'SEMCAS_Demandas_Filtradas.xls';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
+                        a.href = url; a.download = nome;
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+                    }
+                    async function baixarExcel() {
+                        try {
+                            if (!XL || !window.ExcelJS || typeof Chart === 'undefined') throw new Error('Recursos do Excel formatado indisponíveis');
+                            const buf = await thXlsxGerar(XL, thXlsxDeps());
+                            salvarArquivo(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+                                'SEMCAS_Relatorio_Demandas_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+                        } catch (e) {
+                            console.error(e);
+                            alert('Não foi possível gerar o Excel formatado (verifique a conexão). Baixando a versão simples.');
+                            baixarExcelSimples();
+                        }
+                    }
+                    function baixarExcelSimples() {
+                        const tabela = document.getElementById('tabelaRelatorio').outerHTML;
+                        const htmlBase = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body>' + tabela + '</body></html>';
+                        salvarArquivo(new Blob([htmlBase], { type: 'application/vnd.ms-excel' }), 'SEMCAS_Demandas_Filtradas.xls');
                     }
                 <\/script>
             `;
