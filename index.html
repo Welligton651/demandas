@@ -621,6 +621,17 @@
 
             <div id="cadastro-content" class="tab-content hidden">
                 <div class="bg-white rounded-lg card-shadow p-4 tv-sm:p-6 tv-md:p-8">
+                    <div class="flex justify-center mb-6">
+                        <div class="inline-flex w-full sm:w-auto bg-gray-100 rounded-lg p-1 border border-gray-200 shadow-inner" role="tablist" aria-label="Modo de cadastro">
+                            <button type="button" id="btnModoIndividual" onclick="alternarModoCadastro('individual')" role="tab" aria-selected="true" class="focusable flex-1 sm:w-44 py-2 px-4 rounded-md font-bold text-sm transition-all bg-white text-primary shadow-sm border border-gray-200 flex justify-center items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Individual
+                            </button>
+                            <button type="button" id="btnModoLote" onclick="alternarModoCadastro('lote')" role="tab" aria-selected="false" class="focusable flex-1 sm:w-44 py-2 px-4 rounded-md font-bold text-sm transition-all text-gray-500 hover:text-primary flex justify-center items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5Z"/><path d="m2 12 10 5 10-5"/><path d="m2 17 10 5 10-5"/></svg> Em Lote
+                            </button>
+                        </div>
+                    </div>
+                    <div id="formIndividualContainer">
                     <h2 class="text-xl tv-sm:text-2xl tv-md:text-3xl font-bold text-gray-900 mb-4 tv-sm:mb-6 tv-text-2xl">Nova Demanda de Transporte</h2>
                     <form id="demandaForm" class="space-y-4 tv-sm:space-y-6">
                         <div class="grid mobile-grid tablet-grid grid-cols-1 md:grid-cols-2 gap-4 tv-sm:gap-6">
@@ -659,6 +670,43 @@
                         </button>
                         </div>
                     </form>
+                    </div>
+
+                    <div id="formLoteContainer" class="hidden">
+                        <h2 class="text-xl tv-sm:text-2xl tv-md:text-3xl font-bold text-gray-900 mb-1 tv-text-2xl">Cadastro em Lote</h2>
+                        <p class="text-sm text-gray-500 mb-4 tv-sm:mb-6">Registre várias viagens do mesmo solicitante e setor de uma só vez, informando apenas roteiro, data, horário e veículo de cada uma.</p>
+                        <form id="loteForm" class="space-y-6">
+                            <div class="bg-gray-50 p-4 sm:p-5 rounded-lg border border-gray-200">
+                                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-4 pb-2 border-b border-gray-200">1. Informações comuns do lote</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div><label for="loteSolicitante" class="block text-xs font-medium text-gray-700 mb-1">Solicitante</label><input type="text" id="loteSolicitante" required class="focusable w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"></div>
+                                    <div><label for="loteSetor" class="block text-xs font-medium text-gray-700 mb-1">Setor</label><input type="text" id="loteSetor" required placeholder="Digite o nome do setor" class="focusable w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"></div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><label for="loteNumeroSei" class="block text-xs font-medium text-gray-700 mb-1">Nº SEI (aplicado a todas, opcional)</label><input type="text" id="loteNumeroSei" placeholder="0000000-00.0000.0.00.0000" class="focusable w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"></div>
+                                    <div><label for="loteObservacoes" class="block text-xs font-medium text-gray-700 mb-1">Observações comuns (opcional)</label><input type="text" id="loteObservacoes" class="focusable w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-4 pb-2 border-b border-gray-200 flex justify-between items-center">
+                                    <span>2. Roteiros e datas</span>
+                                    <span id="loteContador" class="normal-case tracking-normal font-semibold text-primary bg-gray-100 px-2.5 py-0.5 rounded-full">1 viagem</span>
+                                </h3>
+                                <div id="loteItemsContainer" class="space-y-4"></div>
+                                <button type="button" onclick="adicionarItemLote()" class="focusable mt-4 w-full border-2 border-dashed border-gray-300 text-primary bg-gray-50 hover:bg-gray-100 hover:border-primary font-bold py-3 rounded-lg transition-all flex justify-center items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Adicionar nova viagem ao lote
+                                </button>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
+                                <button type="button" onclick="limparFormularioLote()" class="focusable tv-button px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Limpar tudo</button>
+                                <button type="submit" id="btnSalvarLote" class="focusable tv-button px-6 py-2 sm:py-3 text-sm sm:text-base bg-primary text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> <span id="btnSalvarLoteTxt">Salvar lote completo</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -1595,6 +1643,153 @@
             } catch (error) {
                 console.error("Erro ao cadastrar demanda: ", error);
                 mostrarMensagem('Erro ao cadastrar demanda. Tente novamente.', 'error');
+            }
+        });
+
+
+        // ====== CADASTRO EM LOTE ======
+        let thLoteSeq = 0;
+
+        function alternarModoCadastro(modo) {
+            const lote = modo === 'lote';
+            document.getElementById('formIndividualContainer').classList.toggle('hidden', lote);
+            document.getElementById('formLoteContainer').classList.toggle('hidden', !lote);
+            const ativo = ['bg-white', 'text-primary', 'shadow-sm', 'border', 'border-gray-200'];
+            const inativo = ['text-gray-500'];
+            const bi = document.getElementById('btnModoIndividual'), bl = document.getElementById('btnModoLote');
+            [[bi, !lote], [bl, lote]].forEach(([b, on]) => {
+                ativo.forEach(c => b.classList.toggle(c, on));
+                inativo.forEach(c => b.classList.toggle(c, !on));
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            if (lote && document.querySelectorAll('.lote-item').length === 0) adicionarItemLote();
+        }
+
+        function thLoteOpcoesMotoristas(selecionado) {
+            return '<option value="">Selecione um motorista</option>' + motoristas.map(m =>
+                `<option value="${esc(m.nome)}" ${m.nome === selecionado ? 'selected' : ''}>${esc(m.nome)}</option>`).join('');
+        }
+        // mantém o motorista escolhido quando a lista de motoristas é atualizada
+        function thLoteAtualizarMotoristas() {
+            document.querySelectorAll('.lote-item select[name="loteMotorista"]').forEach(sel => {
+                const atual = sel.value;
+                sel.innerHTML = thLoteOpcoesMotoristas(atual);
+            });
+        }
+
+        function thLoteRenumerar() {
+            const itens = document.querySelectorAll('.lote-item');
+            itens.forEach((el, i) => {
+                const t = el.querySelector('.lote-titulo'); if (t) t.textContent = 'Viagem ' + (i + 1);
+            });
+            const c = document.getElementById('loteContador');
+            if (c) c.textContent = itens.length + (itens.length === 1 ? ' viagem' : ' viagens');
+        }
+
+        function adicionarItemLote(valores) {
+            const v = Object.assign({ partida: '', destino: '', data: dataLocalStr(new Date()), horario: '', motorista: '', placa: '' }, valores || {});
+            const id = 'lote_item_' + (thLoteSeq++);
+            const campo = 'focusable w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary';
+            const html = `
+                <div class="lote-item relative bg-white p-4 sm:p-5 rounded-lg border border-gray-200 shadow-sm transition-all" id="${id}">
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+                        <h4 class="lote-titulo font-bold text-gray-800 text-sm"></h4>
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="duplicarItemLote('${id}')" class="focusable text-primary hover:bg-gray-100 p-1.5 rounded-md transition-colors" title="Duplicar viagem" aria-label="Duplicar viagem">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            </button>
+                            <button type="button" onclick="removerItemLote('${id}')" class="focusable text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-md transition-colors" title="Remover viagem" aria-label="Remover viagem">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div><label class="block text-xs font-medium text-gray-700 mb-1">Partida</label><input type="text" name="lotePartida" required value="${esc(v.partida)}" class="${campo}"></div>
+                        <div><label class="block text-xs font-medium text-gray-700 mb-1">Destino</label><input type="text" name="loteDestino" required value="${esc(v.destino)}" class="${campo}"></div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div><label class="block text-xs font-medium text-gray-700 mb-1">Data</label><input type="date" name="loteData" required value="${esc(v.data)}" class="${campo}"></div>
+                        <div><label class="block text-xs font-medium text-gray-700 mb-1">Horário</label><input type="time" name="loteHorario" required value="${esc(v.horario)}" class="${campo}"></div>
+                        <div class="col-span-2 md:col-span-1"><label class="block text-xs font-medium text-gray-700 mb-1">Motorista</label><select name="loteMotorista" class="${campo}">${thLoteOpcoesMotoristas(v.motorista)}</select></div>
+                        <div class="col-span-2 md:col-span-1"><label class="block text-xs font-medium text-gray-700 mb-1">Placa</label><input type="text" name="lotePlaca" placeholder="ABC-1234" value="${esc(v.placa)}" class="${campo}"></div>
+                    </div>
+                </div>`;
+            document.getElementById('loteItemsContainer').insertAdjacentHTML('beforeend', html);
+            thLoteRenumerar();
+            return document.getElementById(id);
+        }
+
+        function duplicarItemLote(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const q = (s) => el.querySelector(s).value;
+            const novo = adicionarItemLote({
+                partida: q('input[name="lotePartida"]'), destino: q('input[name="loteDestino"]'), data: q('input[name="loteData"]'),
+                horario: q('input[name="loteHorario"]'), motorista: q('select[name="loteMotorista"]'), placa: q('input[name="lotePlaca"]')
+            });
+            // leva a nova viagem para perto da original e foca na data (o que normalmente muda)
+            el.after(novo); thLoteRenumerar();
+            const data = novo.querySelector('input[name="loteData"]'); if (data) data.focus();
+        }
+
+        function removerItemLote(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.remove();
+            if (document.querySelectorAll('.lote-item').length === 0) adicionarItemLote();
+            thLoteRenumerar();
+        }
+
+        function limparFormularioLote() {
+            document.getElementById('loteForm').reset();
+            document.getElementById('loteItemsContainer').innerHTML = '';
+            adicionarItemLote();
+        }
+
+        document.getElementById('loteForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (nivelAcesso === 'visitante') return;
+            const itens = [...document.querySelectorAll('.lote-item')];
+            if (!itens.length) { mostrarMensagem('Adicione ao menos uma viagem ao lote.', 'error'); return; }
+
+            const solicitante = document.getElementById('loteSolicitante').value.trim();
+            const setor = document.getElementById('loteSetor').value.trim();
+            const numeroSei = document.getElementById('loteNumeroSei').value.trim();
+            const observacoes = document.getElementById('loteObservacoes').value.trim();
+            const dataCadastro = new Date().toISOString();
+            const val = (el, s) => el.querySelector(s).value.trim();
+
+            const lista = itens.map(el => ({
+                solicitante, setor,
+                partida: val(el, 'input[name="lotePartida"]'),
+                destino: val(el, 'input[name="loteDestino"]'),
+                dataDemanda: val(el, 'input[name="loteData"]'),
+                horario: val(el, 'input[name="loteHorario"]'),
+                numeroSei,
+                placaVeiculo: val(el, 'input[name="lotePlaca"]'),
+                nomeMotorista: val(el, 'select[name="loteMotorista"]'),
+                observacoes,
+                status: 'Pendente',
+                dataCadastro,
+                cadastradoPor: usuarioLogado
+            }));
+
+            const btn = document.getElementById('btnSalvarLote'), txt = document.getElementById('btnSalvarLoteTxt');
+            btn.disabled = true; txt.textContent = 'Salvando ' + lista.length + ' viagem(ns)...';
+            try {
+                // o Firestore aceita no máximo 500 gravações por lote; divide se for maior
+                for (let i = 0; i < lista.length; i += 400) {
+                    const batch = db.batch();
+                    lista.slice(i, i + 400).forEach(d => batch.set(db.collection('demandas').doc(), d));
+                    await batch.commit();
+                }
+                mostrarMensagem(`Lote com ${lista.length} viagem(ns) cadastrado com sucesso!`, 'success');
+                limparFormularioLote();
+            } catch (error) {
+                console.error('Erro ao cadastrar lote: ', error);
+                mostrarMensagem('Erro ao cadastrar o lote. Tente novamente.', 'error');
+            } finally {
+                btn.disabled = false; txt.textContent = 'Salvar lote completo';
             }
         });
 
@@ -2862,6 +3057,7 @@
                 option.textContent = motorista.nome;
                 select.appendChild(option);
             });
+            if (typeof thLoteAtualizarMotoristas === 'function') thLoteAtualizarMotoristas();
         }
 
         async function removerMotorista(id) {
@@ -3956,231 +4152,317 @@
             }, 200);
         }
 
-        // ====== EXCEL CORPORATIVO (.xlsx formatado, com gráficos) ======
-        // Reaproveita o mesmo resumo, as mesmas cores e os mesmos gráficos do relatório do site.
-        function thPrepararExcel() {
+        // ====== EXPORTAÇÃO EXCEL (.xlsx) COM DESIGN CORPORATIVO ======
+        // Dados enviados para a janela do relatório (somente texto/números, sem HTML)
+        function thTextoPuro(html) {
+            return String(html).replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+        }
+        function thDadosExcel() {
             const lista = getDemandasConcluidas();
-            if (!lista.length) return null;
-            const r = thCalcularResumo(lista), t = thTextoResumo(r);
-            const nomeTurno = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' };
-            const topo = r.porSetor[0];
-            const fatias = r.porSetor.slice(0, 8).map(x => ({ nome: x.nome, n: x.n }));
-            const resto = r.porSetor.slice(8).reduce((s, x) => s + x.n, 0);
-            if (resto) fatias.push({ nome: 'Outros', n: resto });
-            return {
-                titulo: 'Relatório de Demandas Concluídas',
-                gerado: new Date().toLocaleString('pt-BR'),
-                filtros: ['turno', 'setor', 'solicitante', 'datas'].map(k => thResumoFiltro(k)),
-                total: r.total,
-                kpis: [
-                    ['Total de demandas', String(r.total), 'concluídas no recorte filtrado', '7C3AED'],
-                    ['Setor mais atendido', topo.nome, `${topo.n} demanda(s) · ${thPct(topo.n, r.total)}`, '0EA5E9'],
-                    ['Mês de maior volume', thMesRotulo(r.mesPico.chave), `${r.mesPico.n} demanda(s)`, '14B8A6'],
-                    ['Turno predominante', nomeTurno[r.turnoTop[0]], `${thPct(r.turnoTop[1], r.total)} das demandas`, 'F59E0B']
+            const p = {
+                titulo: 'TRANSPORTE & DEMANDAS - SEMCAS',
+                subtitulo: 'Relatório de Demandas Concluídas',
+                geradoEm: new Date().toLocaleString('pt-BR'),
+                filtros: [
+                    ['Turno', thResumoFiltro('turno')], ['Setor', thResumoFiltro('setor')],
+                    ['Solicitante', thResumoFiltro('solicitante')], ['Datas', thResumoFiltro('datas')]
                 ],
-                quant: t.quant, qual: t.qual,
-                meses: r.meses.map(thMesRotulo), serieMes: r.serieMes, fatias, cores: TH_CORES_PIZZA,
-                ranking: r.porSetor.slice(0, 10),
-                rows: lista.map(d => ({
-                    data: d.dataDemanda || '', dia: d.dataDemanda ? TH_DIAS_SEMANA[criarDataBrasilia(d.dataDemanda).getDay()] : '',
-                    hora: d.horario || '', turno: nomeTurno[thTurnoDaHora(d.horario)], solicitante: d.solicitante || '', setor: d.setor || '',
-                    partida: d.partida || '', destino: d.destino || '', motorista: d.nomeMotorista || '', placa: d.placaVeiculo || '',
-                    sei: d.numeroSei || '', cad: d.cadastradoPor || '', baixa: d.concluidoPor || ''
-                }))
+                total: lista.length,
+                linhas: lista.map(d => [d.dataDemanda || '', d.horario || '', d.solicitante || '', d.setor || '', d.partida || '', d.destino || '',
+                    d.nomeMotorista || '', d.placaVeiculo || '', d.numeroSei || '', d.cadastradoPor || '', d.concluidoPor || ''])
             };
+            if (lista.length) {
+                const r = thCalcularResumo(lista);
+                const t = thTextoResumo(r);
+                const turnoNome = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }[r.turnoTop[0]];
+                p.cards = [
+                    { rot: 'TOTAL DE DEMANDAS', val: String(r.total), sub: 'concluídas no recorte filtrado', cor: '7C3AED' },
+                    { rot: 'SETOR MAIS ATENDIDO', val: r.porSetor[0].nome, sub: r.porSetor[0].n + ' demanda(s) · ' + thPct(r.porSetor[0].n, r.total), cor: '0EA5E9' },
+                    { rot: 'MÊS DE MAIOR VOLUME', val: thMesRotulo(r.mesPico.chave), sub: r.mesPico.n + ' demanda(s)', cor: '14B8A6' },
+                    { rot: 'TURNO PREDOMINANTE', val: turnoNome, sub: thPct(r.turnoTop[1], r.total) + ' das demandas', cor: 'F59E0B' }
+                ];
+                p.meses = r.meses.map(thMesRotulo);
+                p.serieMes = r.serieMes;
+                let fatias = r.porSetor.slice(0, 8).map(x => ({ nome: x.nome, n: x.n }));
+                const resto = r.porSetor.slice(8).reduce((s, x) => s + x.n, 0);
+                if (resto) fatias.push({ nome: 'Outros', n: resto });
+                p.fatias = fatias;
+                p.cores = TH_CORES_PIZZA;
+                p.ranking = r.porSetor.map(x => ({ nome: x.nome, n: x.n, pct: x.n / r.total }));
+                p.quant = t.quant.map(thTextoPuro);
+                p.qual = t.qual.map(thTextoPuro);
+            }
+            return p;
         }
 
-        // Roda dentro da janela do relatório (por isso não usa nada de fora): recebe os dados e devolve o .xlsx
-        async function thXlsxGerar(X, deps) {
-            const wb = new deps.ExcelJS.Workbook();
-            wb.creator = 'TransportHub · SEMCAS'; wb.created = new Date();
-            const F = 'Calibri', LET = 'ABCDEFGHIJKLMNOPQ';
-            const fill = c => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + c } });
-            const thin = { style: 'thin', color: { argb: 'FFE5E7EB' } };
-            const cor = c => ({ argb: 'FF' + c });
-            const ws = wb.addWorksheet('Resumo', { properties: { tabColor: cor('7C3AED') }, views: [{ showGridLines: false }],
-                pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
-                headerFooter: { oddFooter: '&L&8TransportHub · SEMCAS&R&8Página &P de &N' } });
-            [2, 12, 12, 12, 2, 12, 12, 12, 2, 12, 12, 12, 2, 12, 12, 12, 2].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+        // Roda dentro da janela do relatório (precisa ser autossuficiente: só usa ExcelJS e Chart)
+        async function thConstruirXlsx(p) {
+            const COR = { escuro: 'FF1F2937', medio: 'FF374151', cinza: 'FF6B7280', claro: 'FFF3F4F6', roxo: 'FF7C3AED', roxoClaro: 'FFF5F3FF', roxoTexto: 'FF581C87', borda: 'FFE5E7EB', branco: 'FFFFFFFF', zebra: 'FFF9FAFB' };
+            const preencher = (c) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: c } });
+            const bordaFina = { style: 'thin', color: { argb: COR.borda } };
+            const todasBordas = { top: bordaFina, left: bordaFina, bottom: bordaFina, right: bordaFina };
+            const wb = new ExcelJS.Workbook();
+            wb.creator = 'TransportHub - SEMCAS';
+            wb.created = new Date();
 
-            const rc = a => [parseInt(a.slice(1), 10), LET.indexOf(a[0]) + 1];
-            const area = (rng, fn) => { const [a, b] = rng.split(':'); const [r1, c1] = rc(a), [r2, c2] = rc(b || a);
-                for (let y = r1; y <= r2; y++) for (let x = c1; x <= c2; x++) fn(ws.getCell(y, x), y, x, r1, r2, c1, c2); };
-            const put = (rng, val, o) => {
-                const [a, b] = rng.split(':');
-                if (b && a !== b) ws.mergeCells(rng);
-                area(rng, c => { if (o.fill) c.fill = fill(o.fill); });
-                const c = ws.getCell(a); c.value = val;
-                c.font = Object.assign({ name: F, size: 10 }, o.font || {});
-                c.alignment = Object.assign({ vertical: 'middle', wrapText: true }, o.al || {});
-            };
-            const borda = (rng, e) => area(rng, (c, y, x, r1, r2, c1, c2) => {
-                const b = Object.assign({}, c.border);
-                if (y === r1) b.top = e; if (y === r2) b.bottom = e; if (x === c1) b.left = e; if (x === c2) b.right = e; c.border = b; });
-            const plano = h => String(h).replace(/<[^>]+>/g, '');
-            const rica = h => ({ richText: String(h).split(/(<strong>.*?<\/strong>)/).filter(Boolean).map(p => ({
-                font: { name: F, size: 10, bold: p.indexOf('<strong>') === 0, color: cor('374151') },
-                text: plano(p).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'") })) });
-            const alt = (h, cpl) => Math.max(20, Math.ceil(plano(h).length / cpl) * 14 + 8);
-            const H = (y, h) => { ws.getRow(y).height = h; };
-
-            // Cabeçalho (mesma identidade do relatório: faixa slate + detalhe roxo)
-            [[2, 'TRANSPORTE & DEMANDAS — SEMCAS', 18, 'FFFFFF', 38, true], [3, X.titulo, 12, 'E5E7EB', 22, false], [4, 'Gerado em ' + X.gerado + ' por TransportHub', 9, '9CA3AF', 18, false]]
-                .forEach(([y, tx, sz, c, h, b]) => { put(`B${y}:P${y}`, tx, { fill: '1F2937', font: { size: sz, bold: b, color: cor(c) }, al: { indent: 1 } }); H(y, h); });
-            put('B5:P5', '', { fill: '7C3AED' }); H(1, 8); H(5, 5); H(6, 8);
-
-            // Filtros aplicados
-            ['Turno', 'Setor', 'Solicitante', 'Datas'].forEach((n, i) => { const c0 = 'BFJN'[i], c2 = LET[LET.indexOf(c0) + 2];
-                put(`${c0}7:${c2}7`, { richText: [{ font: { name: F, size: 10, bold: true, color: cor('4C1D95') }, text: n + ': ' }, { font: { name: F, size: 10, color: cor('4C1D95') }, text: X.filtros[i] }] }, { fill: 'F5F3FF', al: { indent: 1 } }); });
-            ['E', 'I', 'M'].forEach(c => { ws.getCell(c + '7').fill = fill('F5F3FF'); });
-            H(7, Math.max(24, ...X.filtros.map(t => Math.ceil(t.length / 34) * 14 + 10)));
-            H(8, 10);
-
-            // Cartões de KPI
-            X.kpis.forEach((k, i) => { const c0 = 'BFJN'[i], c2 = LET[LET.indexOf(c0) + 2], al = { indent: 1, horizontal: 'left', shrinkToFit: true, wrapText: false };
-                put(`${c0}9:${c2}9`, k[0].toUpperCase(), { fill: 'FFFFFF', font: { size: 9, bold: true, color: cor('6B7280') }, al });
-                put(`${c0}10:${c2}10`, k[1], { fill: 'FFFFFF', font: { size: k[1].length > 14 ? 15 : 24, bold: true, color: cor('111827') }, al });
-                put(`${c0}11:${c2}11`, k[2], { fill: 'FFFFFF', font: { size: 9, color: cor('6B7280') }, al });
-                borda(`${c0}9:${c2}11`, thin);
-                area(`${c0}9:${c0}11`, c => { c.border = Object.assign({}, c.border, { left: { style: 'thick', color: cor(k[3]) } }); }); });
-            H(9, 20); H(10, 36); H(11, 20); H(12, 12);
-
-            // Gráficos (renderizados com o mesmo Chart.js do site)
-            const rot = { id: 'rot', afterDatasetsDraw(ch) { const c = ch.ctx; c.save(); c.fillStyle = '#374151'; c.font = 'bold 22px sans-serif'; c.textAlign = 'center';
-                ch.getDatasetMeta(0).data.forEach((b, i) => { const v = ch.data.datasets[0].data[i]; if (v) c.fillText(v, b.x, b.y - 8); }); c.restore(); } };
-            const eixo = { ticks: { font: { size: 20 }, precision: 0 }, grid: { color: '#E5E7EB' } };
-            const cfgMes = { type: 'bar', plugins: [rot], data: { labels: X.meses, datasets: [{ data: X.serieMes, backgroundColor: '#7c3aed', borderRadius: 10 }] },
-                options: { layout: { padding: { top: 32 } }, plugins: { legend: { display: false } }, scales: { y: Object.assign({ beginAtZero: true }, eixo), x: { grid: { display: false }, ticks: { font: { size: 20 } } } } } };
-            const cfgSet = { type: 'doughnut', data: { labels: X.fatias.map(f => (f.nome.length > 24 ? f.nome.slice(0, 23) + '…' : f.nome) + ' (' + f.n + ' · ' + Math.round(f.n * 100 / X.total) + '%)'),
-                datasets: [{ data: X.fatias.map(f => f.n), backgroundColor: X.fatias.map((f, i) => f.nome === 'Outros' ? '#94a3b8' : X.cores[i % X.cores.length]), borderWidth: 3, borderColor: '#ffffff' }] },
-                options: { plugins: { legend: { position: 'right', labels: { boxWidth: 22, font: { size: 17 } } } } } };
-            const painel = (c1, c2, y1, y2, titulo) => { put(`${c1}${y1}:${c2}${y1}`, titulo, { fill: 'FFFFFF', font: { size: 11, bold: true, color: cor('111827') }, al: { indent: 1 } });
-                area(`${c1}${y1 + 1}:${c2}${y2}`, c => { c.fill = fill('FFFFFF'); }); borda(`${c1}${y1}:${c2}${y2}`, thin); H(y1, 26); };
-            painel('B', 'H', 13, 30, 'Demandas por mês'); painel('J', 'P', 13, 30, 'Setores atendidos');
-            [[cfgMes, 1], [cfgSet, 9]].forEach(([cfg, col]) => { const id = wb.addImage({ base64: deps.renderChart(cfg, 1082, 620).split(',')[1], extension: 'png' });
-                ws.addImage(id, { tl: { col: col + 0.07, row: 13.25 }, ext: { width: 541, height: 310 } }); });
-            H(31, 12);
-
-            // Resumos (esquerda) e ranking de setores (direita), como no relatório do site
-            const y0 = 32; let y = y0;
-            [['Resumo quantitativo', X.quant], ['Resumo qualitativo', X.qual]].forEach(([tit, lista]) => {
-                put(`B${y}:H${y}`, tit, { fill: 'FFFFFF', font: { size: 11, bold: true, color: cor('111827') }, al: { indent: 1 } }); H(y, 26); y++;
-                lista.forEach(h => { put(`B${y}:H${y}`, rica('•  ' + h), { fill: 'FFFFFF', al: { vertical: 'top', indent: 1 } }); H(y, alt(h, 78)); y++; });
-                put(`B${y}:H${y}`, '', { fill: 'FFFFFF' }); H(y, 10); y++;
-            });
-            const yEnd = Math.max(y - 1, y0 + X.ranking.length + 1);
-            if (yEnd >= y) area(`B${y}:H${yEnd}`, c => { c.fill = fill('FFFFFF'); });
-            borda(`B${y0}:H${yEnd}`, thin);
-            painel('J', 'P', y0, yEnd, 'Ranking de setores');
-            X.ranking.forEach((s, i) => { const q = y0 + 1 + i;
-                put(`J${q}`, (i + 1) + 'º', { fill: 'FFFFFF', font: { color: cor('6B7280') }, al: { horizontal: 'center' } });
-                put(`K${q}:N${q}`, s.nome, { fill: 'FFFFFF', font: { size: 10, color: cor('1F2937') }, al: { indent: 1, wrapText: false, shrinkToFit: true } });
-                put(`O${q}`, s.n, { fill: 'FFFFFF', font: { bold: true }, al: { horizontal: 'center' } });
-                put(`P${q}`, s.n / X.total, { fill: 'FFFFFF', font: { color: cor('6B7280') }, al: { horizontal: 'center' } });
-                ws.getCell(`P${q}`).numFmt = '0%'; });
-            ws.addConditionalFormatting({ ref: `O${y0 + 1}:O${y0 + X.ranking.length}`, rules: [{ type: 'dataBar', gradient: false, cfvo: [{ type: 'min' }, { type: 'max' }], color: cor('C4B5FD') }] });
-            H(yEnd + 1, 12);
-
-            // Lista de demandas dentro do próprio relatório (igual à tabela do relatório no site)
-            const T = yEnd + 2;
-            put(`B${T}:P${T}`, 'Demandas concluídas (' + X.rows.length + ')', { fill: 'FFFFFF', font: { size: 11, bold: true, color: cor('111827') }, al: { indent: 1 } }); H(T, 26);
-            const mix = (a, b, t) => [0, 2, 4].map(k => Math.round(parseInt(a.substr(k, 2), 16) + (parseInt(b.substr(k, 2), 16) - parseInt(a.substr(k, 2), 16)) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
-            const grad = t => t < 0.5 ? mix('1F2937', '374151', t * 2) : mix('374151', '6B7280', (t - 0.5) * 2);
-            const G = [['B', 'B', 'Data'], ['C', 'C', 'Hora'], ['D', 'F', 'Solicitante / Setor'], ['G', 'I', 'Partida'], ['J', 'K', 'Destino'], ['L', 'M', 'Motorista'], ['N', 'N', 'Placa'], ['O', 'O', 'Nº SEI'], ['P', 'P', 'Operador']];
-            G.forEach((g, gi) => put(`${g[0]}${T + 1}:${g[1]}${T + 1}`, g[2].toUpperCase(), { fill: grad(gi / (G.length - 1)), font: { size: 9, bold: true, color: cor('FFFFFF') }, al: { horizontal: 'center' } })); H(T + 1, 24);
-            X.rows.forEach((d, i) => { const q = T + 2 + i, bg = i % 2 ? 'F9FAFB' : 'FFFFFF', dd = (d.data || '').split('-'), c = { horizontal: 'center' };
-                const cel = (k, val, o) => put(`${G[k][0]}${q}:${G[k][1]}${q}`, val, Object.assign({ fill: bg }, o || {}));
-                cel(0, dd.length === 3 ? dd[2] + '/' + dd[1] + '/' + dd[0] : d.data, { al: c });
-                cel(1, d.hora || '-', { al: c, font: { size: 10, bold: true } });
-                cel(2, { richText: [{ font: { name: F, size: 10, bold: true, color: cor('1F2937') }, text: d.solicitante || '-' }, { font: { name: F, size: 8, color: cor('6B7280') }, text: '\n' + (d.setor || '') }] }, { al: { indent: 1 } });
-                cel(3, d.partida || '-', { al: { indent: 1 } }); cel(4, d.destino || '-', { al: { indent: 1 } }); cel(5, d.motorista || '-', { al: { indent: 1 }, font: { size: 10, bold: true } });
-                cel(6, d.placa || '-', { al: c }); cel(7, d.sei || '-', { al: c }); cel(8, { richText: [{ font: { name: F, size: 8, color: cor('4B5563') }, text: 'Cad: ' + (d.cad || '-') + '\nBaixa: ' + (d.baixa || '-') }] }, { al: { indent: 1 } });
-                area(`B${q}:P${q}`, e => { e.border = { bottom: thin }; }); H(q, 32); });
-            const fim = T + 2 + X.rows.length;
-            for (let q = 1; q <= fim + 1; q++) for (let c = 1; c <= 17; c++) { const cel = ws.getCell(q, c); if (!cel.fill) cel.fill = fill('F3F4F6'); }
-
-            // Aba com a tabela completa (filtrável)
-            const w2 = wb.addWorksheet('Demandas', { properties: { tabColor: cor('1F2937') }, views: [{ state: 'frozen', ySplit: 4, showGridLines: false }],
-                pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '4:4' },
-                headerFooter: { oddFooter: '&L&8TransportHub · SEMCAS&R&8Página &P de &N' } });
-            const cols = [['Data', 12], ['Dia', 15], ['Hora', 8], ['Turno', 10], ['Solicitante', 28], ['Setor', 30], ['Partida', 28], ['Destino', 28], ['Motorista', 24], ['Placa', 11], ['Nº SEI', 22], ['Cadastrado por', 18], ['Baixa por', 18]];
-            cols.forEach((c, i) => { w2.getColumn(i + 1).width = c[1]; });
-            const faixa = (y, tx, sz, c, h, b) => { w2.mergeCells(y, 1, y, 13); const e = w2.getCell(y, 1); e.value = tx; e.font = { name: F, size: sz, bold: b, color: cor(c) };
-                e.alignment = { vertical: 'middle', indent: 1 }; for (let x = 1; x <= 13; x++) w2.getCell(y, x).fill = fill('1F2937'); w2.getRow(y).height = h; };
-            faixa(1, 'TRANSPORTE & DEMANDAS — SEMCAS · Demandas concluídas', 15, 'FFFFFF', 32, true);
-            faixa(2, 'Gerado em ' + X.gerado + ' · Turno: ' + X.filtros[0] + ' · Setor: ' + X.filtros[1].slice(0, 80) + ' · Solicitante: ' + X.filtros[2].slice(0, 80) + ' · Datas: ' + X.filtros[3].slice(0, 80), 9, '9CA3AF', 20, false);
-            for (let x = 1; x <= 13; x++) w2.getCell(3, x).fill = fill('7C3AED'); w2.getRow(3).height = 4;
-            cols.forEach((c, i) => { const e = w2.getCell(4, i + 1); e.value = c[0].toUpperCase(); e.fill = fill('374151'); e.font = { name: F, size: 10, bold: true, color: cor('FFFFFF') };
-                e.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; e.border = { bottom: { style: 'medium', color: cor('7C3AED') } }; });
-            w2.getRow(4).height = 28;
-            X.rows.forEach((d, i) => { const y = 5 + i, p = (d.data || '').split('-').map(Number);
-                const v = [p.length === 3 && p[0] ? new Date(Date.UTC(p[0], p[1] - 1, p[2])) : d.data, d.dia, d.hora, d.turno, d.solicitante, d.setor, d.partida, d.destino, d.motorista, d.placa, d.sei, d.cad, d.baixa];
-                v.forEach((val, j) => { const e = w2.getCell(y, j + 1); e.value = val === '' ? null : val; e.font = { name: F, size: 10, color: cor('1F2937') }; e.fill = fill(i % 2 ? 'F9FAFB' : 'FFFFFF');
-                    e.border = { top: thin, bottom: thin, left: thin, right: thin }; e.alignment = { vertical: 'middle', wrapText: true, horizontal: [0, 2, 3, 9].indexOf(j) >= 0 ? 'center' : 'left' }; });
-                w2.getCell(y, 1).numFmt = 'dd/mm/yyyy'; });
-            const ult = 4 + X.rows.length;
-            w2.autoFilter = { from: { row: 4, column: 1 }, to: { row: ult, column: 13 } };
-            w2.mergeCells(ult + 1, 1, ult + 1, 3);
-            for (let x = 1; x <= 13; x++) { const e = w2.getCell(ult + 1, x); e.fill = fill('EDE9FE'); e.font = { name: F, size: 10, bold: true, color: cor('4C1D95') }; }
-            w2.getCell(ult + 1, 1).value = 'Total de registros (respeita o filtro)';
-            w2.getCell(ult + 1, 4).value = { formula: `SUBTOTAL(103,E5:E${ult})`, result: X.rows.length }; w2.getCell(ult + 1, 4).alignment = { horizontal: 'center' };
-            const turno = (t, bg, fg) => ({ type: 'cellIs', operator: 'equal', formulae: ['"' + t + '"'], style: { font: { bold: true, color: cor(fg) }, fill: { type: 'pattern', pattern: 'solid', bgColor: cor(bg) } } });
-            w2.addConditionalFormatting({ ref: `D5:D${ult}`, rules: [turno('Manhã', 'FEF3C7', '92400E'), turno('Tarde', 'E0F2FE', '075985'), turno('Noite', 'E0E7FF', '3730A3')] });
-            return await wb.xlsx.writeBuffer();
-        }
-
-        // Cria o gráfico fora da tela (mesmo Chart.js do relatório) e devolve a imagem PNG
-        function thXlsxDeps() {
-            return {
-                ExcelJS: window.ExcelJS,
-                renderChart: function (cfg, w, h) {
-                    var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-                    cfg.options = Object.assign({ responsive: false, animation: false, devicePixelRatio: 1 }, cfg.options || {});
-                    cfg.plugins = (cfg.plugins || []).concat([{ id: 'fundo', beforeDraw: function (c) { c.ctx.fillStyle = '#ffffff'; c.ctx.fillRect(0, 0, c.width, c.height); } }]);
-                    var ch = new Chart(cv, cfg); var url = cv.toDataURL('image/png'); ch.destroy(); return url;
+            // faixa de título comum às duas planilhas
+            function cabecalho(ws, ultimaCol, linhaFiltros) {
+                ws.mergeCells(1, 1, 1, ultimaCol); ws.mergeCells(2, 1, 2, ultimaCol); ws.mergeCells(3, 1, 3, ultimaCol);
+                const c1 = ws.getCell(1, 1); c1.value = p.titulo;
+                c1.font = { name: 'Calibri', size: 20, bold: true, color: { argb: COR.branco } };
+                c1.alignment = { vertical: 'middle', indent: 1 };
+                const c2 = ws.getCell(2, 1); c2.value = p.subtitulo + '  ·  Gerado em ' + p.geradoEm;
+                c2.font = { name: 'Calibri', size: 11, color: { argb: 'FFD1D5DB' } };
+                c2.alignment = { vertical: 'middle', indent: 1 };
+                for (let c = 1; c <= ultimaCol; c++) {
+                    ws.getCell(1, c).fill = preencher(COR.escuro);
+                    ws.getCell(2, c).fill = preencher(COR.medio);
+                    ws.getCell(3, c).fill = preencher(COR.roxo);
                 }
-            };
+                ws.getRow(1).height = 34; ws.getRow(2).height = 20; ws.getRow(3).height = 5;
+                // linha de filtros aplicados
+                ws.mergeCells(linhaFiltros, 1, linhaFiltros, ultimaCol);
+                const cf = ws.getCell(linhaFiltros, 1);
+                cf.value = 'Filtros aplicados  →  ' + p.filtros.map(f => f[0] + ': ' + f[1]).join('   |   ');
+                cf.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.roxoTexto } };
+                cf.alignment = { vertical: 'middle', wrapText: true, indent: 1 };
+                for (let c = 1; c <= ultimaCol; c++) ws.getCell(linhaFiltros, c).fill = preencher(COR.roxoClaro);
+                ws.getRow(linhaFiltros).height = Math.max(22, 16 * Math.ceil(cf.value.length / (ultimaCol * 11)));
+            }
+
+            // ---------- Planilha 1: Resumo ----------
+            const wsR = wb.addWorksheet('Resumo', {
+                properties: { tabColor: { argb: COR.roxo } }, views: [{ showGridLines: false }],
+                pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } }
+            });
+            for (let c = 1; c <= 12; c++) wsR.getColumn(c).width = 13;
+            cabecalho(wsR, 12, 4);
+            let linha = 6;
+
+            if (p.total > 0) {
+                // --- cards de indicadores (4 cards x 3 colunas) ---
+                p.cards.forEach((card, i) => {
+                    const c0 = i * 3 + 1;
+                    [0, 1, 2].forEach(k => wsR.mergeCells(linha + k, c0, linha + k, c0 + 2));
+                    const lab = wsR.getCell(linha, c0); lab.value = card.rot;
+                    lab.font = { name: 'Calibri', size: 9, bold: true, color: { argb: COR.cinza } };
+                    lab.alignment = { vertical: 'bottom', indent: 1 };
+                    const val = wsR.getCell(linha + 1, c0); val.value = card.val;
+                    val.font = { name: 'Calibri', size: card.val.length > 12 ? 16 : 26, bold: true, color: { argb: 'FF111827' } };
+                    val.alignment = { vertical: 'middle', indent: 1, shrinkToFit: true };
+                    const sub = wsR.getCell(linha + 2, c0); sub.value = card.sub;
+                    sub.font = { name: 'Calibri', size: 9, color: { argb: COR.cinza } };
+                    sub.alignment = { vertical: 'top', indent: 1 };
+                    for (let k = 0; k < 3; k++) for (let c = c0; c < c0 + 3; c++) {
+                        const cel = wsR.getCell(linha + k, c);
+                        cel.fill = preencher(COR.branco);
+                        cel.border = {
+                            top: k === 0 ? bordaFina : undefined, bottom: k === 2 ? bordaFina : undefined,
+                            right: c === c0 + 2 ? bordaFina : undefined,
+                            left: c === c0 ? { style: 'thick', color: { argb: 'FF' + card.cor } } : undefined
+                        };
+                    }
+                });
+                wsR.getRow(linha).height = 20; wsR.getRow(linha + 1).height = 38; wsR.getRow(linha + 2).height = 20;
+                linha += 4;
+
+                // --- títulos de seção dos gráficos ---
+                const secao = (l, c1, c2, texto) => {
+                    wsR.mergeCells(l, c1, l, c2);
+                    const c = wsR.getCell(l, c1); c.value = texto;
+                    c.font = { name: 'Calibri', size: 12, bold: true, color: { argb: COR.branco } };
+                    c.alignment = { vertical: 'middle', indent: 1 };
+                    for (let x = c1; x <= c2; x++) wsR.getCell(l, x).fill = preencher(COR.escuro);
+                    wsR.getRow(l).height = 22;
+                };
+                secao(linha, 1, 7, 'DEMANDAS POR MÊS');
+                secao(linha, 8, 12, 'SETORES ATENDIDOS');
+
+                // --- gráficos desenhados em canvas e inseridos como imagem ---
+                const fundo = { id: 'fundoBranco', beforeDraw(ch) { const x = ch.ctx; x.save(); x.globalCompositeOperation = 'destination-over'; x.fillStyle = '#ffffff'; x.fillRect(0, 0, ch.width, ch.height); x.restore(); } };
+                const rotulos = { id: 'rotulosValores', afterDatasetsDraw(ch) {
+                    const x = ch.ctx; x.save(); x.fillStyle = '#1f2937'; x.font = 'bold 22px Calibri, Arial'; x.textAlign = 'center';
+                    ch.getDatasetMeta(0).data.forEach((b, i) => { const v = ch.data.datasets[0].data[i]; if (v) x.fillText(String(v), b.x, b.y - 8); });
+                    x.restore(); } };
+                const desenhar = (w, h, config) => {
+                    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                    Chart.defaults.animation = false; Chart.defaults.font.size = 22; Chart.defaults.font.family = 'Calibri, Arial, sans-serif';
+                    config.options = Object.assign({ responsive: false, devicePixelRatio: 1 }, config.options);
+                    config.plugins = (config.plugins || []).concat([fundo]);
+                    const ch = new Chart(cv, config);
+                    const url = cv.toDataURL('image/png'); ch.destroy(); return url;
+                };
+                const imgMensal = desenhar(1320, 600, {
+                    type: 'bar',
+                    data: { labels: p.meses, datasets: [{ data: p.serieMes, backgroundColor: '#7c3aed', borderRadius: 8, maxBarThickness: 90 }] },
+                    options: { layout: { padding: { top: 34, right: 16 } }, plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#e5e7eb' } }, x: { grid: { display: false } } } },
+                    plugins: [rotulos]
+                });
+                const totalF = p.fatias.reduce((s, f) => s + f.n, 0);
+                const imgSetores = desenhar(940, 600, {
+                    type: 'doughnut',
+                    data: { labels: p.fatias.map(f => f.nome + ' (' + f.n + ' · ' + Math.round(f.n * 100 / totalF) + '%)'),
+                        datasets: [{ data: p.fatias.map(f => f.n), backgroundColor: p.fatias.map((f, i) => f.nome === 'Outros' ? '#94a3b8' : '#' + p.cores[i % p.cores.length].replace('#', '')), borderWidth: 4, borderColor: '#ffffff' }] },
+                    options: { plugins: { legend: { position: 'right', labels: { boxWidth: 22, font: { size: 20 } } } } }
+                });
+                const b64 = (u) => u.replace(/^data:image\/png;base64,/, '');
+                const idA = wb.addImage({ base64: b64(imgMensal), extension: 'png' });
+                const idB = wb.addImage({ base64: b64(imgSetores), extension: 'png' });
+                const linhasImg = 15;
+                for (let i = 1; i <= linhasImg; i++) wsR.getRow(linha + i).height = 20;
+                wsR.addImage(idA, { tl: { col: 0.05, row: linha + 0.1 }, ext: { width: 650, height: 295 } });
+                wsR.addImage(idB, { tl: { col: 7.05, row: linha + 0.1 }, ext: { width: 462, height: 295 } });
+                linha += linhasImg + 1;
+
+                // --- ranking de setores (esquerda) e série mensal (direita) com barras de dados ---
+                wsR.getRow(linha - 1).addPageBreak(); // ranking e textos começam na página 2 ao imprimir
+                secao(linha, 1, 7, 'RANKING DE SETORES');
+                secao(linha, 8, 12, 'EVOLUÇÃO MENSAL');
+                const cab = (l, c, txt, alinha) => { const x = wsR.getCell(l, c); x.value = txt; x.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.medio } }; x.fill = preencher(COR.claro); x.alignment = { horizontal: alinha || 'left', vertical: 'middle', indent: alinha ? 0 : 1 }; x.border = todasBordas; };
+                const l0 = linha + 1;
+                cab(l0, 1, 'Pos.', 'center'); wsR.mergeCells(l0, 2, l0, 5); cab(l0, 2, 'Setor'); [3, 4, 5].forEach(c => { wsR.getCell(l0, c).fill = preencher(COR.claro); wsR.getCell(l0, c).border = todasBordas; });
+                cab(l0, 6, 'Qtde', 'center'); cab(l0, 7, '% do total', 'center');
+                wsR.mergeCells(l0, 8, l0, 10); cab(l0, 8, 'Mês', 'center'); [9, 10].forEach(c => { wsR.getCell(l0, c).fill = preencher(COR.claro); wsR.getCell(l0, c).border = todasBordas; });
+                cab(l0, 11, 'Qtde', 'center'); cab(l0, 12, 'Var. mês ant.', 'center');
+                p.ranking.forEach((r, i) => {
+                    const l = l0 + 1 + i;
+                    wsR.mergeCells(l, 2, l, 5);
+                    const vals = [[1, (i + 1) + 'º', 'center'], [2, r.nome, 'left'], [6, r.n, 'center'], [7, r.pct, 'center']];
+                    vals.forEach(([c, v, al]) => { const x = wsR.getCell(l, c); x.value = v; x.alignment = { horizontal: al, vertical: 'middle', indent: al === 'left' ? 1 : 0 }; x.font = { name: 'Calibri', size: 10, bold: c === 6 }; });
+                    wsR.getCell(l, 7).numFmt = '0.0%';
+                    for (let c = 1; c <= 7; c++) { const x = wsR.getCell(l, c); x.border = todasBordas; if (i % 2) x.fill = preencher(COR.zebra); }
+                });
+                p.meses.forEach((m, i) => {
+                    const l = l0 + 1 + i;
+                    wsR.mergeCells(l, 8, l, 10);
+                    const a = wsR.getCell(l, 8); a.value = m; a.alignment = { horizontal: 'center', vertical: 'middle' };
+                    const q = wsR.getCell(l, 11); q.value = p.serieMes[i]; q.alignment = { horizontal: 'center', vertical: 'middle' }; q.font = { name: 'Calibri', size: 10, bold: true };
+                    const v = wsR.getCell(l, 12); v.alignment = { horizontal: 'center', vertical: 'middle' };
+                    if (i === 0) { v.value = '-'; v.font = { name: 'Calibri', size: 10, color: { argb: COR.cinza } }; }
+                    else {
+                        const ant = p.serieMes[i - 1], atu = p.serieMes[i];
+                        if (ant === 0) { v.value = atu > 0 ? '▲ novo' : '-'; v.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF059669' } }; }
+                        else {
+                            const pc = (atu - ant) / ant;
+                            v.value = (pc > 0 ? '▲ +' : pc < 0 ? '▼ ' : '= ') + (pc * 100).toFixed(0).replace('.', ',') + '%';
+                            v.font = { name: 'Calibri', size: 10, bold: true, color: { argb: pc > 0 ? 'FF059669' : pc < 0 ? 'FFDC2626' : COR.cinza } };
+                        }
+                    }
+                    for (let c = 8; c <= 12; c++) { const x = wsR.getCell(l, c); x.border = todasBordas; if (i % 2) x.fill = preencher(COR.zebra); if (c === 8) x.font = { name: 'Calibri', size: 10 }; }
+                });
+                const fimRank = l0 + p.ranking.length, fimMes = l0 + p.meses.length;
+                try {
+                    wsR.addConditionalFormatting({ ref: 'F' + (l0 + 1) + ':F' + fimRank, rules: [{ type: 'dataBar', cfvo: [{ type: 'num', value: 0 }, { type: 'max' }], color: { argb: 'FFA78BFA' }, gradient: false, priority: 1 }] });
+                    wsR.addConditionalFormatting({ ref: 'K' + (l0 + 1) + ':K' + fimMes, rules: [{ type: 'dataBar', cfvo: [{ type: 'num', value: 0 }, { type: 'max' }], color: { argb: 'FF5EEAD4' }, gradient: false, priority: 2 }] });
+                } catch (e) { console.warn('Barras de dados indisponíveis', e); }
+                linha = Math.max(fimRank, fimMes) + 2;
+
+                // --- resumos escritos ---
+                const bloco = (titulo, itens) => {
+                    secao(linha, 1, 12, titulo); linha++;
+                    itens.forEach(txt => {
+                        wsR.mergeCells(linha, 1, linha, 12);
+                        const c = wsR.getCell(linha, 1); c.value = '•  ' + txt;
+                        c.font = { name: 'Calibri', size: 11, color: { argb: 'FF374151' } };
+                        c.alignment = { wrapText: true, vertical: 'middle', indent: 1 };
+                        for (let x = 1; x <= 12; x++) { wsR.getCell(linha, x).border = { bottom: bordaFina }; }
+                        wsR.getRow(linha).height = 18 * Math.max(1, Math.ceil(txt.length / 125));
+                        linha++;
+                    });
+                    linha++;
+                };
+                bloco('RESUMO QUANTITATIVO', p.quant);
+                bloco('RESUMO QUALITATIVO', p.qual);
+            } else {
+                wsR.mergeCells(linha, 1, linha, 12);
+                const c = wsR.getCell(linha, 1); c.value = 'Nenhuma demanda concluída encontrada com os filtros atuais.';
+                c.font = { name: 'Calibri', size: 12, italic: true, color: { argb: COR.cinza } }; c.alignment = { horizontal: 'center' };
+                linha += 2;
+            }
+            wsR.mergeCells(linha, 1, linha, 12);
+            const rod = wsR.getCell(linha, 1); rod.value = 'Gerado por TransportHub · SEMCAS - Sistema de Demandas';
+            rod.font = { name: 'Calibri', size: 9, italic: true, color: { argb: COR.cinza } }; rod.alignment = { horizontal: 'right' };
+
+            // ---------- Planilha 2: Demandas (tabela) ----------
+            const colunas = [['Data', 12], ['Hora', 8], ['Solicitante', 26], ['Setor', 20], ['Partida', 26], ['Destino', 30], ['Motorista', 22], ['Placa', 12], ['Nº SEI', 20], ['Cadastrado por', 16], ['Baixa por', 16]];
+            const wsT = wb.addWorksheet('Demandas', {
+                properties: { tabColor: { argb: COR.escuro } }, views: [{ state: 'frozen', ySplit: 5, showGridLines: false }],
+                pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '5:5', margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } }
+            });
+            colunas.forEach(([n, w], i) => { wsT.getColumn(i + 1).width = w; });
+            cabecalho(wsT, colunas.length, 4);
+            const hr = wsT.getRow(5); hr.height = 26;
+            colunas.forEach(([n], i) => {
+                const x = hr.getCell(i + 1); x.value = n.toUpperCase();
+                x.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.branco } };
+                x.fill = preencher(COR.escuro);
+                x.alignment = { vertical: 'middle', horizontal: i < 2 || i === 7 ? 'center' : 'left', indent: i < 2 || i === 7 ? 0 : 1 };
+                x.border = { bottom: { style: 'medium', color: { argb: COR.roxo } } };
+            });
+            p.linhas.forEach((l, i) => {
+                const row = wsT.getRow(6 + i);
+                l.forEach((v, c) => {
+                    const x = row.getCell(c + 1);
+                    if (c === 0 && /^\d{4}-\d{2}-\d{2}$/.test(v)) { const [a, m, d] = v.split('-').map(Number); x.value = new Date(Date.UTC(a, m - 1, d)); x.numFmt = 'dd/mm/yyyy'; }
+                    else x.value = v === '' ? '-' : v;
+                    x.font = { name: 'Calibri', size: 10, bold: c === 1 };
+                    x.alignment = { vertical: 'middle', horizontal: c < 2 || c === 7 ? 'center' : 'left', indent: c < 2 || c === 7 ? 0 : 1, wrapText: c === 4 || c === 5 };
+                    x.border = todasBordas;
+                    if (i % 2) x.fill = preencher(COR.zebra);
+                });
+                row.height = 20;
+            });
+            const ultima = 5 + Math.max(p.linhas.length, 1);
+            if (p.linhas.length) wsT.autoFilter = { from: { row: 5, column: 1 }, to: { row: ultima, column: colunas.length } };
+            const tot = wsT.getRow(ultima + 2);
+            wsT.mergeCells(ultima + 2, 1, ultima + 2, colunas.length);
+            tot.getCell(1).value = 'Total de registros exportados: ' + p.total;
+            tot.getCell(1).font = { name: 'Calibri', size: 11, bold: true, color: { argb: COR.roxoTexto } };
+            tot.getCell(1).alignment = { horizontal: 'right' };
+
+            return await wb.xlsx.writeBuffer();
         }
 
         function gerarViewExcel() {
             const botaoExcel = `
-                <button onclick="baixarExcel()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors shadow-sm flex items-center">
+                <button id="btnBaixarExcel" onclick="baixarExcel()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors shadow-sm flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-2 16H8v-2h4v2zm0-4H8v-2h4v2zm2-8h-4V4h4v6z"/></svg>
-                    Download Excel
+                    Baixar Excel (.xlsx)
                 </button>
             `;
-            let payload = null;
-            try { payload = thPrepararExcel(); } catch (e) { console.error('Excel: falha ao preparar os dados', e); }
-            const json = JSON.stringify(payload).replace(/</g, '\\u003c');
+            const payload = JSON.stringify(thDadosExcel()).replace(/</g, '\\u003c');
             const scriptExcel = `
                 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>
                 <script>
-                    var XL = ${json};
-                    ${thXlsxGerar.toString()}
-                    ${thXlsxDeps.toString()}
-                    function salvarArquivo(blob, nome) {
+                    const dadosExcel = ${payload};
+                    ${thConstruirXlsx.toString()}
+                    function baixarArquivo(blob, nome) {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url; a.download = nome;
                         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+                        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
                     }
                     async function baixarExcel() {
+                        const btn = document.getElementById('btnBaixarExcel');
+                        const rotulo = btn.innerHTML;
+                        btn.disabled = true; btn.textContent = 'Gerando planilha...';
                         try {
-                            if (!XL || !window.ExcelJS || typeof Chart === 'undefined') throw new Error('Recursos do Excel formatado indisponíveis');
-                            const buf = await thXlsxGerar(XL, thXlsxDeps());
-                            salvarArquivo(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-                                'SEMCAS_Relatorio_Demandas_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+                            if (typeof ExcelJS === 'undefined' || (dadosExcel.total > 0 && typeof Chart === 'undefined')) throw new Error('Bibliotecas não carregadas');
+                            const buffer = await thConstruirXlsx(dadosExcel);
+                            const hoje = new Date().toISOString().slice(0, 10);
+                            baixarArquivo(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'SEMCAS_Relatorio_Demandas_' + hoje + '.xlsx');
                         } catch (e) {
                             console.error(e);
-                            alert('Não foi possível gerar o Excel formatado (verifique a conexão). Baixando a versão simples.');
-                            baixarExcelSimples();
+                            // plano B (sem internet): tabela simples em formato .xls
+                            const tabela = document.getElementById('tabelaRelatorio').outerHTML;
+                            const htmlBase = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body>' + tabela + '</body></html>';
+                            baixarArquivo(new Blob([htmlBase], { type: 'application/vnd.ms-excel' }), 'SEMCAS_Demandas_Filtradas.xls');
+                            alert('Não foi possível gerar a planilha formatada (biblioteca não carregou). Foi baixada a versão simples da tabela.');
+                        } finally {
+                            btn.disabled = false; btn.innerHTML = rotulo;
                         }
-                    }
-                    function baixarExcelSimples() {
-                        const tabela = document.getElementById('tabelaRelatorio').outerHTML;
-                        const htmlBase = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body>' + tabela + '</body></html>';
-                        salvarArquivo(new Blob([htmlBase], { type: 'application/vnd.ms-excel' }), 'SEMCAS_Demandas_Filtradas.xls');
                     }
                 <\/script>
             `;
