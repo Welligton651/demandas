@@ -1009,18 +1009,98 @@
                                 <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
                                 Controle de Folgas
                             </h2>
-                            <p class="text-teal-100 mt-1">Registro e acompanhamento das folgas dos servidores</p>
+                            <p class="text-teal-100 mt-1">Banco de folgas e programação dos motoristas</p>
                         </div>
-                        <button onclick="abrirModalFolga()" class="px-4 py-2.5 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            Registrar Folga
-                        </button>
+                        <div class="flex flex-wrap gap-2">
+                            <button id="btnNovoCreditoFolga" onclick="abrirModalBanco()" class="px-4 py-2.5 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Lançar no banco
+                            </button>
+                            <button id="btnProgramarFolga" onclick="abrirModalFolga()" class="hidden px-4 py-2.5 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Programar folga
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="p-6 space-y-5">
+                    <div class="px-6 pt-5">
+                        <div class="inline-flex w-full sm:w-auto bg-gray-100 rounded-lg p-1 border border-gray-200 shadow-inner" role="tablist" aria-label="Seções de folgas">
+                            <button type="button" id="subabaBanco" onclick="folgasSubaba('banco')" role="tab" class="flex-1 sm:w-56 py-2 px-4 rounded-md font-bold text-sm transition-all flex justify-center items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21h18M5 21V10m4 11V10m6 11V10m4 11V10M12 3 3 8h18L12 3Z"/></svg> 1. Banco de Folgas
+                            </button>
+                            <button type="button" id="subabaProg" onclick="folgasSubaba('programacao')" role="tab" class="flex-1 sm:w-56 py-2 px-4 rounded-md font-bold text-sm transition-all flex justify-center items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> 2. Programação
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ===== 1. BANCO DE FOLGAS ===== -->
+                    <div id="folgasPainelBanco" class="p-6 space-y-5">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="rounded-xl border border-teal-100 bg-teal-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-teal-700">Créditos lançados</p><p id="kpiBancoCred" class="text-3xl font-extrabold text-teal-800 mt-1">0</p><p class="text-xs text-teal-700/80">dia(s) no banco</p></div>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-slate-600">Já gozadas</p><p id="kpiBancoGozadas" class="text-3xl font-extrabold text-slate-800 mt-1">0</p><p class="text-xs text-slate-500">dia(s) descontados</p></div>
+                            <div class="rounded-xl border border-sky-100 bg-sky-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-sky-700">Agendadas</p><p id="kpiBancoAgend" class="text-3xl font-extrabold text-sky-800 mt-1">0</p><p class="text-xs text-sky-700/80">dia(s) programados</p></div>
+                            <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Saldo disponível</p><p id="kpiBancoSaldo" class="text-3xl font-extrabold text-emerald-800 mt-1">0</p><p class="text-xs text-emerald-700/80">dia(s) a programar</p></div>
+                        </div>
+
+                        <div>
+                            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-2">
+                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Saldo por motorista</h3>
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <input type="text" id="bancoBusca" oninput="renderBancoFolgas()" placeholder="Buscar motorista..." class="px-3 h-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none sm:w-56" aria-label="Buscar motorista">
+                                    <button type="button" onclick="abrirModalBancoMotorista()" class="px-4 h-10 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-lg shadow-sm flex items-center justify-center gap-1.5">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Cadastrar motorista
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead class="bg-gray-700 text-white">
+                                        <tr>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Motorista</th>
+                                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Créditos</th>
+                                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Ajustes (−)</th>
+                                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Gozadas</th>
+                                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Agendadas</th>
+                                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Saldo</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bancoSaldoBody" class="bg-white divide-y divide-gray-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-2">
+                                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Extrato de lançamentos</h3>
+                                <div class="flex items-center gap-2">
+                                    <select id="bancoFiltroMotorista" onchange="renderBancoFolgas()" class="px-3 h-10 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500 outline-none max-w-[16rem]" aria-label="Filtrar extrato por motorista"><option value="">Todos os motoristas</option></select>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead class="bg-gray-700 text-white">
+                                        <tr>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Data</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Motorista</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Movimento</th>
+                                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Dias</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Motivo / Observação</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bancoExtratoBody" class="bg-white divide-y divide-gray-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 2. PROGRAMAÇÃO (grade calendário) ===== -->
+                    <div id="folgasPainelProg" class="hidden p-6 space-y-5">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="rounded-xl border border-teal-100 bg-teal-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-teal-700">Folgas no período</p><p id="kpiFolgasPeriodo" class="text-3xl font-extrabold text-teal-800 mt-1">0</p></div>
-                            <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Servidores distintos</p><p id="kpiFolgasServidores" class="text-3xl font-extrabold text-emerald-800 mt-1">0</p></div>
+                            <div class="rounded-xl border border-emerald-100 bg-emerald-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Motoristas distintos</p><p id="kpiFolgasServidores" class="text-3xl font-extrabold text-emerald-800 mt-1">0</p></div>
                             <div class="rounded-xl border border-sky-100 bg-sky-50 p-4"><p class="text-xs font-bold uppercase tracking-wider text-sky-700">Próximos 7 dias</p><p id="kpiFolgasProx" class="text-3xl font-extrabold text-sky-800 mt-1">0</p></div>
                         </div>
 
@@ -1028,12 +1108,14 @@
                             <div>
                                 <label for="filtroFolgasMes" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Mês</label>
                                 <div class="flex gap-2">
+                                    <button type="button" onclick="folgasMesNav(-1)" class="px-3 h-11 font-bold bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700" aria-label="Mês anterior">‹</button>
                                     <input type="month" id="filtroFolgasMes" oninput="renderFolgas()" class="px-3 h-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
-                                    <button type="button" onclick="document.getElementById('filtroFolgasMes').value=''; renderFolgas();" class="px-3 h-11 text-sm font-medium bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700">Todos</button>
+                                    <button type="button" onclick="folgasMesNav(1)" class="px-3 h-11 font-bold bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700" aria-label="Próximo mês">›</button>
+                                    <button type="button" onclick="folgasMesNav(0)" class="px-3 h-11 text-sm font-medium bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700">Hoje</button>
                                 </div>
                             </div>
                             <div class="flex-1">
-                                <label for="filtroFolgasBusca" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Buscar servidor ou lotação</label>
+                                <label for="filtroFolgasBusca" class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Buscar motorista ou lotação</label>
                                 <input type="text" id="filtroFolgasBusca" oninput="renderFolgas()" placeholder="Digite para filtrar..." class="w-full px-3 h-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
                             </div>
                             <div>
@@ -1046,23 +1128,37 @@
                                     <option>Outra</option>
                                 </select>
                             </div>
+                            <label class="flex items-center gap-2 h-11 text-sm text-gray-700 cursor-pointer select-none" title="Por padrão a grade mostra apenas os motoristas cadastrados no banco de folgas">
+                                <input type="checkbox" id="filtroFolgasTodosSistema" onchange="renderFolgas()" class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"> Incluir todos os motoristas do sistema
+                            </label>
+                            <label class="flex items-center gap-2 h-11 text-sm text-gray-700 cursor-pointer select-none">
+                                <input type="checkbox" id="filtroFolgasSoComFolga" onchange="renderFolgas()" class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"> Só quem tem folga no mês
+                            </label>
                         </div>
 
-                        <div class="overflow-x-auto border border-gray-200 rounded-xl">
-                            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead class="bg-gray-700 text-white">
-                                    <tr>
-                                        <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Servidor</th>
-                                        <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Lotação</th>
-                                        <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Tipo</th>
-                                        <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Período</th>
-                                        <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Dias</th>
-                                        <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Observação</th>
-                                        <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="folgasTableBody" class="bg-white divide-y divide-gray-100"></tbody>
-                            </table>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600" id="folgasLegenda" aria-label="Legenda"></div>
+                        <div id="gradeFolgas" class="overflow-x-auto border border-gray-200 rounded-xl"></div>
+                        <p class="text-xs text-gray-500">Clique em um dia vazio para programar uma folga ao motorista, ou em uma folga já marcada para editá-la. O símbolo <span class="font-bold text-amber-600">⚠</span> indica que o motorista tem demanda não concluída naquele dia.</p>
+
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-2">Programações do período</h3>
+                            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead class="bg-gray-700 text-white">
+                                        <tr>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Motorista</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Lotação</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Tipo</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Período</th>
+                                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Dias</th>
+                                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">Banco</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Observação</th>
+                                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="folgasTableBody" class="bg-white divide-y divide-gray-100"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1185,26 +1281,27 @@
         </div>
     </div>
 
-    <!-- MODAL DE FOLGA -->
+    <!-- MODAL DE FOLGA (programação) -->
     <div id="modalFolga" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[150] p-4 hidden">
         <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-4 rounded-t-2xl flex justify-between items-center">
-                <h3 id="tituloModalFolga" class="text-xl font-bold text-white">Registrar Folga</h3>
+                <h3 id="tituloModalFolga" class="text-xl font-bold text-white">Programar Folga</h3>
                 <button type="button" onclick="fecharModalFolga()" class="text-teal-100 hover:text-white" aria-label="Fechar"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
             </div>
             <form id="formFolga" onsubmit="salvarFolga(event)" class="p-6 space-y-4">
                 <input type="hidden" id="folgaId">
                 <div>
-                    <label for="folgaServidor" class="block text-sm font-bold text-gray-700 mb-1">Servidor</label>
-                    <input type="text" id="folgaServidor" required placeholder="Nome completo" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                    <label for="folgaServidor" class="block text-sm font-bold text-gray-700 mb-1">Motorista</label>
+                    <input type="text" id="folgaServidor" required list="listaMotoristasFolga" oninput="folgaAtualizarInfoSaldo()" placeholder="Selecione ou digite o nome" autocomplete="off" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                    <datalist id="listaMotoristasFolga"></datalist>
                 </div>
                 <div>
-                    <label for="folgaLotacao" class="block text-sm font-bold text-gray-700 mb-1">Unidade/Lotação</label>
-                    <input type="text" id="folgaLotacao" required list="listaUnidadesFerias" placeholder="Ex: CRAS Centro" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                    <label for="folgaLotacao" class="block text-sm font-bold text-gray-700 mb-1">Unidade/Lotação (opcional)</label>
+                    <input type="text" id="folgaLotacao" list="listaUnidadesFerias" placeholder="Ex: Transporte SEMCAS" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
                 </div>
                 <div>
                     <label for="folgaTipo" class="block text-sm font-bold text-gray-700 mb-1">Tipo</label>
-                    <select id="folgaTipo" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500 outline-none">
+                    <select id="folgaTipo" required onchange="folgaTipoMudou()" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500 outline-none">
                         <option>Folga compensatória</option>
                         <option>Banco de horas</option>
                         <option>Abono</option>
@@ -1212,8 +1309,14 @@
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label for="folgaInicio" class="block text-sm font-bold text-gray-700 mb-1">Data inicial</label><input type="date" id="folgaInicio" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"></div>
-                    <div><label for="folgaFim" class="block text-sm font-bold text-gray-700 mb-1">Data final</label><input type="date" id="folgaFim" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                    <div><label for="folgaInicio" class="block text-sm font-bold text-gray-700 mb-1">Data inicial</label><input type="date" id="folgaInicio" required onchange="folgaAtualizarInfoSaldo()" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                    <div><label for="folgaFim" class="block text-sm font-bold text-gray-700 mb-1">Data final</label><input type="date" id="folgaFim" required onchange="folgaAtualizarInfoSaldo()" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                </div>
+                <div class="rounded-lg border border-teal-100 bg-teal-50/60 p-3">
+                    <label class="flex items-start gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="folgaDebita" onchange="folgaAtualizarInfoSaldo()" class="mt-0.5 w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500">
+                        <span class="text-sm text-gray-800"><strong>Descontar do banco de folgas</strong><br><span id="folgaInfoSaldo" class="text-xs text-gray-600"></span></span>
+                    </label>
                 </div>
                 <div>
                     <label for="folgaObs" class="block text-sm font-bold text-gray-700 mb-1">Observação (opcional)</label>
@@ -1221,6 +1324,82 @@
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="fecharModalFolga()" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-bold">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CADASTRAR MOTORISTA NO BANCO DE FOLGAS -->
+    <div id="modalBancoMotorista" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[150] p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-4 rounded-t-2xl flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Cadastrar motorista no banco</h3>
+                <button type="button" onclick="fecharModalBancoMotorista()" class="text-teal-100 hover:text-white" aria-label="Fechar"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <form id="formBancoMotorista" onsubmit="salvarBancoMotorista(event)" class="p-6 space-y-4">
+                <div>
+                    <label for="bmNome" class="block text-sm font-bold text-gray-700 mb-1">Motorista</label>
+                    <input type="text" id="bmNome" required list="listaMotoristasSistema" placeholder="Escolha da lista ou digite o nome" autocomplete="off" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                    <datalist id="listaMotoristasSistema"></datalist>
+                    <p class="text-xs text-gray-500 mt-1">A lista traz os motoristas do sistema só como sugestão. Apenas quem for cadastrado aqui aparece no saldo.</p>
+                </div>
+                <div>
+                    <label for="bmSaldoInicial" class="block text-sm font-bold text-gray-700 mb-1">Saldo inicial em dias (opcional)</label>
+                    <input type="number" id="bmSaldoInicial" min="0" step="0.5" value="0" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                    <p class="text-xs text-gray-500 mt-1">Se maior que zero, é lançado um crédito com o motivo "Saldo anterior".</p>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="fecharModalBancoMotorista()" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-bold">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DO BANCO DE FOLGAS (lançamento) -->
+    <div id="modalBanco" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[150] p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-4 rounded-t-2xl flex justify-between items-center">
+                <h3 id="tituloModalBanco" class="text-xl font-bold text-white">Lançar no Banco de Folgas</h3>
+                <button type="button" onclick="fecharModalBanco()" class="text-teal-100 hover:text-white" aria-label="Fechar"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <form id="formBanco" onsubmit="salvarBanco(event)" class="p-6 space-y-4">
+                <input type="hidden" id="bancoId">
+                <div>
+                    <label for="bancoMotorista" class="block text-sm font-bold text-gray-700 mb-1">Motorista</label>
+                    <select id="bancoMotorista" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500 outline-none"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="bancoTipo" class="block text-sm font-bold text-gray-700 mb-1">Movimento</label>
+                        <select id="bancoTipo" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-teal-500 outline-none">
+                            <option value="credito">Crédito (folga adquirida)</option>
+                            <option value="debito">Débito (ajuste / baixa)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="bancoDias" class="block text-sm font-bold text-gray-700 mb-1">Dias</label>
+                        <input type="number" id="bancoDias" required min="0.5" step="0.5" value="1" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="bancoData" class="block text-sm font-bold text-gray-700 mb-1">Data de referência</label>
+                        <input type="date" id="bancoData" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label for="bancoMotivo" class="block text-sm font-bold text-gray-700 mb-1">Motivo</label>
+                        <input type="text" id="bancoMotivo" required list="listaMotivosBanco" placeholder="Ex: Plantão em feriado" autocomplete="off" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
+                        <datalist id="listaMotivosBanco"><option value="Plantão em fim de semana"><option value="Feriado trabalhado"><option value="Horas extras convertidas"><option value="Saldo anterior"><option value="Viagem/evento fora do horário"></datalist>
+                    </div>
+                </div>
+                <div>
+                    <label for="bancoObs" class="block text-sm font-bold text-gray-700 mb-1">Observação (opcional)</label>
+                    <textarea id="bancoObs" rows="2" placeholder="Ex: Nº SEI, evento, detalhes do plantão" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="fecharModalBanco()" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium">Cancelar</button>
                     <button type="submit" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-bold">Salvar</button>
                 </div>
             </form>
@@ -4934,6 +5113,8 @@ function atualizarMenuPorPerfil() {
 
 // ---------- Listeners (só para administradores logados) ----------
 let folgas = [];
+let bancoFolgas = [];
+let bancoMotoristas = [];
 let advertencias = [];
 let unsubGestao = [];
 
@@ -4943,6 +5124,16 @@ function iniciarListenersGestao() {
         folgas = snap.docs.map(d => ({ ...d.data(), id: d.id }));
         renderFolgas();
     }, err => { console.error('Erro ao carregar folgas', err); mostrarMensagem('Erro ao carregar folgas.', 'error'); }));
+
+    unsubGestao.push(db.collection('bancoMotoristas').onSnapshot(snap => {
+        bancoMotoristas = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        renderFolgas();
+    }, err => { console.error('Erro ao carregar motoristas do banco', err); mostrarMensagem('Erro ao carregar os motoristas do banco de folgas.', 'error'); }));
+
+    unsubGestao.push(db.collection('bancoFolgas').orderBy('dataReferencia', 'desc').onSnapshot(snap => {
+        bancoFolgas = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+        renderFolgas();
+    }, err => { console.error('Erro ao carregar banco de folgas', err); mostrarMensagem('Erro ao carregar o banco de folgas.', 'error'); }));
 
     unsubGestao.push(db.collection('advertencias').orderBy('dataOcorrencia', 'desc').onSnapshot(snap => {
         advertencias = snap.docs.map(d => ({ ...d.data(), id: d.id }));
@@ -4954,6 +5145,8 @@ function pararListenersGestao() {
     unsubGestao.forEach(f => { try { f(); } catch (e) {} });
     unsubGestao = [];
     folgas = [];
+    bancoFolgas = [];
+    bancoMotoristas = [];
     advertencias = [];
     renderFolgas();
     renderAdvertencias();
@@ -4999,11 +5192,309 @@ function semAcento(t) {
 }
 
 // ================= CONTROLE DE FOLGAS =================
-function abrirModalFolga(id) {
+// Estrutura:  1) Banco de Folgas  -> coleção "bancoFolgas" (créditos e ajustes por motorista)
+//             2) Programação      -> coleção "folgas" (dias programados/gozados, exibidos em grade calendário)
+// Saldo = créditos − ajustes − dias de folga (gozados ou agendados) marcados com "descontar do banco".
+const TIPOS_FOLGA_COR = { 'Folga compensatória': '#14b8a6', 'Banco de horas': '#0ea5e9', 'Abono': '#f59e0b', 'Outra': '#64748b' };
+const TIPOS_QUE_DEBITAM = ['Folga compensatória', 'Banco de horas'];
+let folgasSubabaAtual = 'banco';
+let thGradeLinhas = [];
+
+const thChaveNome = (n) => semAcento(n).trim().replace(/\s+/g, ' ');
+const thNum = (n) => (Math.round(n * 100) / 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+
+function folgasSubaba(qual) {
+    folgasSubabaAtual = qual === 'programacao' ? 'programacao' : 'banco';
+    const prog = folgasSubabaAtual === 'programacao';
+    document.getElementById('folgasPainelBanco').classList.toggle('hidden', prog);
+    document.getElementById('folgasPainelProg').classList.toggle('hidden', !prog);
+    document.getElementById('btnNovoCreditoFolga').classList.toggle('hidden', prog);
+    document.getElementById('btnProgramarFolga').classList.toggle('hidden', !prog);
+    [['subabaBanco', !prog], ['subabaProg', prog]].forEach(([id, on]) => {
+        const b = document.getElementById(id); if (!b) return;
+        ['bg-white', 'text-teal-700', 'shadow-sm', 'border', 'border-gray-200'].forEach(c => b.classList.toggle(c, on));
+        b.classList.toggle('text-gray-500', !on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    renderFolgas();
+}
+
+function folgasMesNav(delta) {
+    const el = document.getElementById('filtroFolgasMes');
+    let base = el.value || dataLocalStr(new Date()).slice(0, 7);
+    if (delta === 0) base = dataLocalStr(new Date()).slice(0, 7);
+    else { const [a, m] = base.split('-').map(Number); const d = new Date(a, m - 1 + delta, 1); base = dataLocalStr(d).slice(0, 7); }
+    el.value = base; el.dataset.iniciado = '1';
+    renderFolgas();
+}
+
+// lista de motoristas para os campos com sugestão
+function thNomesBanco() {
+    // motoristas do banco = cadastrados no banco + quem já tem lançamento (dados de antes do cadastro)
+    const mapa = new Map();
+    bancoMotoristas.forEach(m => { const k = thChaveNome(m.nome); if (k) mapa.set(k, String(m.nome).trim()); });
+    bancoFolgas.forEach(l => { const k = thChaveNome(l.motorista); if (k && !mapa.has(k)) mapa.set(k, String(l.motorista).trim()); });
+    return [...mapa.values()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+function folgasPreencherSugestoes() {
+    const dl = document.getElementById('listaMotoristasFolga');
+    if (dl) dl.innerHTML = thNomesBanco().map(n => `<option value="${esc(n)}"></option>`).join('');
+    const ds = document.getElementById('listaMotoristasSistema');
+    if (ds) ds.innerHTML = motoristas.map(m => `<option value="${esc(m.nome)}"></option>`).join('');
+}
+
+// ---------- cálculo do saldo ----------
+function thDiasFolgaGozoAgenda(f, hoje) {
+    // separa os dias de uma folga entre "já gozados" (até hoje) e "agendados" (depois de hoje)
+    const total = diasEntre(f.dataInicio, f.dataFim);
+    let gozados = 0;
+    if (f.dataInicio <= hoje) gozados = diasEntre(f.dataInicio, f.dataFim < hoje ? f.dataFim : hoje);
+    return { gozados, agendados: Math.max(0, total - gozados) };
+}
+function thCalcularBanco() {
+    const hoje = dataLocalStr(new Date());
+    const mapa = new Map();
+    const reg = (nome) => {
+        const k = thChaveNome(nome);
+        if (!k) return null;
+        if (!mapa.has(k)) mapa.set(k, { chave: k, nome: String(nome).trim(), creditos: 0, ajustes: 0, gozadas: 0, agendadas: 0 });
+        return mapa.get(k);
+    };
+    thNomesBanco().forEach(n => reg(n));
+    bancoFolgas.forEach(l => {
+        const r = reg(l.motorista); if (!r) return;
+        const dias = Number(l.dias) || 0;
+        if (l.tipo === 'debito') r.ajustes += dias; else r.creditos += dias;
+    });
+    folgas.forEach(f => {
+        if (f.debitaBanco !== true) return;       // registros antigos (sem a marcação) não mexem no saldo
+        const r = mapa.get(thChaveNome(f.servidor)); if (!r) return;   // só conta para motoristas cadastrados no banco
+        const d = thDiasFolgaGozoAgenda(f, hoje);
+        r.gozadas += d.gozados; r.agendadas += d.agendados;
+    });
+    mapa.forEach(r => { r.saldo = r.creditos - r.ajustes - r.gozadas - r.agendadas; });
+    return mapa;
+}
+// saldo disponível de um motorista, ignorando (opcionalmente) uma folga que está sendo editada
+function thSaldoMotorista(nome, ignorarFolgaId) {
+    const antes = folgas;
+    if (ignorarFolgaId) folgas = folgas.filter(f => f.id !== ignorarFolgaId);
+    let saldo = 0;
+    try { const r = thCalcularBanco().get(thChaveNome(nome)); saldo = r ? r.saldo : 0; } finally { folgas = antes; }
+    return saldo;
+}
+
+// ---------- 1) BANCO DE FOLGAS ----------
+function abrirModalBanco(id, motoristaPre) {
+    const l = id ? bancoFolgas.find(x => x.id === id) : null;
+    folgasPreencherSugestoes();
+    const nomes = thNomesBanco();
+    if (!nomes.length) { mostrarMensagem('Cadastre primeiro um motorista no banco de folgas.', 'error'); abrirModalBancoMotorista(); return; }
+    document.getElementById('bancoMotorista').innerHTML = '<option value="">Selecione o motorista...</option>' + nomes.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    document.getElementById('formBanco').reset();
+    document.getElementById('bancoId').value = l ? l.id : '';
+    document.getElementById('tituloModalBanco').textContent = l ? 'Editar lançamento' : 'Lançar no Banco de Folgas';
+    if (l) {
+        document.getElementById('bancoMotorista').value = nomes.find(n => thChaveNome(n) === thChaveNome(l.motorista)) || '';
+        document.getElementById('bancoTipo').value = l.tipo === 'debito' ? 'debito' : 'credito';
+        document.getElementById('bancoDias').value = l.dias;
+        document.getElementById('bancoData').value = l.dataReferencia || '';
+        document.getElementById('bancoMotivo').value = l.motivo || '';
+        document.getElementById('bancoObs').value = l.observacao || '';
+    } else {
+        document.getElementById('bancoData').value = dataLocalStr(new Date());
+        if (motoristaPre) document.getElementById('bancoMotorista').value = nomes.find(n => thChaveNome(n) === thChaveNome(motoristaPre)) || '';
+    }
+    document.getElementById('modalBanco').classList.remove('hidden');
+}
+function fecharModalBanco() { document.getElementById('modalBanco').classList.add('hidden'); }
+
+async function salvarBanco(e) {
+    e.preventDefault();
+    if (!ehAdminAutorizado()) return;
+    const btn = e.target.querySelector('button[type="submit"]');
+    const dias = parseFloat(document.getElementById('bancoDias').value);
+    if (!(dias > 0)) { mostrarMensagem('Informe uma quantidade de dias maior que zero.', 'error'); return; }
+    const id = document.getElementById('bancoId').value;
+    const dados = {
+        motorista: document.getElementById('bancoMotorista').value.trim(),
+        tipo: document.getElementById('bancoTipo').value,
+        dias,
+        dataReferencia: document.getElementById('bancoData').value,
+        motivo: document.getElementById('bancoMotivo').value.trim(),
+        observacao: document.getElementById('bancoObs').value.trim()
+    };
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try {
+        if (id) await db.collection('bancoFolgas').doc(id).update({ ...dados, editadoPor: usuarioLogado, dataEdicao: new Date().toISOString() });
+        else await db.collection('bancoFolgas').add({ ...dados, cadastradoPor: usuarioLogado, dataCadastro: new Date().toISOString() });
+        mostrarMensagem(id ? 'Lançamento atualizado!' : 'Lançamento registrado no banco!', 'success');
+        fecharModalBanco();
+    } catch (err) {
+        console.error('Erro ao salvar lançamento do banco', err);
+        mostrarMensagem('Erro ao salvar o lançamento.', 'error');
+    } finally { btn.disabled = false; btn.textContent = 'Salvar'; }
+}
+
+async function excluirBanco(id) {
+    if (!ehAdminAutorizado()) return;
+    const l = bancoFolgas.find(x => x.id === id);
+    if (!confirm(`Excluir este lançamento de ${l ? l.motorista : 'motorista'} (${l ? thNum(l.dias) : ''} dia(s))? O saldo será recalculado.`)) return;
+    try { await db.collection('bancoFolgas').doc(id).delete(); mostrarMensagem('Lançamento excluído.', 'success'); }
+    catch (err) { console.error('Erro ao excluir lançamento', err); mostrarMensagem('Erro ao excluir o lançamento.', 'error'); }
+}
+
+function abrirModalBancoMotorista() {
+    folgasPreencherSugestoes();
+    document.getElementById('formBancoMotorista').reset();
+    document.getElementById('modalBancoMotorista').classList.remove('hidden');
+    setTimeout(() => { const i = document.getElementById('bmNome'); if (i) i.focus(); }, 50);
+}
+function fecharModalBancoMotorista() { document.getElementById('modalBancoMotorista').classList.add('hidden'); }
+
+async function salvarBancoMotorista(e) {
+    e.preventDefault();
+    if (!ehAdminAutorizado()) return;
+    const btn = e.target.querySelector('button[type="submit"]');
+    const nome = document.getElementById('bmNome').value.trim().replace(/\s+/g, ' ');
+    const saldo = parseFloat(document.getElementById('bmSaldoInicial').value) || 0;
+    if (!nome) return;
+    if (thNomesBanco().some(n => thChaveNome(n) === thChaveNome(nome))) { mostrarMensagem('Este motorista já está cadastrado no banco de folgas.', 'error'); return; }
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try {
+        const agora = new Date().toISOString();
+        await db.collection('bancoMotoristas').add({ nome, cadastradoPor: usuarioLogado, dataCadastro: agora });
+        if (saldo > 0) {
+            await db.collection('bancoFolgas').add({ motorista: nome, tipo: 'credito', dias: saldo, dataReferencia: dataLocalStr(new Date()), motivo: 'Saldo anterior', observacao: 'Saldo inicial ao cadastrar o motorista', cadastradoPor: usuarioLogado, dataCadastro: agora });
+        }
+        mostrarMensagem(`${nome} cadastrado no banco de folgas!`, 'success');
+        fecharModalBancoMotorista();
+    } catch (err) {
+        console.error('Erro ao cadastrar motorista no banco', err);
+        mostrarMensagem('Erro ao cadastrar o motorista no banco.', 'error');
+    } finally { btn.disabled = false; btn.textContent = 'Cadastrar'; }
+}
+
+async function removerBancoMotorista(nome) {
+    if (!ehAdminAutorizado()) return;
+    const k = thChaveNome(nome);
+    if (bancoFolgas.some(l => thChaveNome(l.motorista) === k)) {
+        mostrarMensagem('Este motorista tem lançamentos no banco. Exclua os lançamentos antes de removê-lo.', 'error'); return;
+    }
+    const docs = bancoMotoristas.filter(m => thChaveNome(m.nome) === k);
+    if (!docs.length) return;
+    if (!confirm(`Remover ${nome} do banco de folgas? As folgas já programadas continuam na programação.`)) return;
+    try { for (const d of docs) await db.collection('bancoMotoristas').doc(d.id).delete(); mostrarMensagem('Motorista removido do banco.', 'success'); }
+    catch (err) { console.error('Erro ao remover motorista do banco', err); mostrarMensagem('Erro ao remover o motorista.', 'error'); }
+}
+
+function bancoFiltrarMotorista(nome) {
+    const sel = document.getElementById('bancoFiltroMotorista');
+    sel.value = [...sel.options].some(o => o.value === nome) ? nome : '';
+    renderBancoFolgas();
+    const alvo = document.getElementById('bancoExtratoBody'); if (alvo && alvo.scrollIntoView) alvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function renderBancoFolgas() {
+    const corpo = document.getElementById('bancoSaldoBody');
+    if (!corpo) return;
+    folgasPreencherSugestoes();
+    const mapa = thCalcularBanco();
+    const busca = semAcento((document.getElementById('bancoBusca') || {}).value || '');
+    const todos = [...mapa.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    const linhas = todos.filter(r => !busca || semAcento(r.nome).includes(busca));
+
+    const soma = (k) => todos.reduce((s, r) => s + r[k], 0);
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('kpiBancoCred', thNum(soma('creditos') - soma('ajustes')));
+    set('kpiBancoGozadas', thNum(soma('gozadas')));
+    set('kpiBancoAgend', thNum(soma('agendadas')));
+    set('kpiBancoSaldo', thNum(soma('saldo')));
+
+    if (!linhas.length) {
+        corpo.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Nenhum motorista no banco de folgas. Clique em "Cadastrar motorista" para começar.</td></tr>';
+    } else {
+        corpo.innerHTML = linhas.map(r => {
+            const cor = r.saldo < 0 ? 'bg-red-100 text-red-800' : r.saldo === 0 ? 'bg-gray-100 text-gray-700' : 'bg-emerald-100 text-emerald-800';
+            const n = esc(r.nome).replace(/'/g, '&#39;');
+            return `<tr class="hover:bg-gray-50">
+                <td class="px-3 py-3 font-bold text-gray-900">${esc(r.nome)}</td>
+                <td class="px-3 py-3 text-center text-teal-700 font-semibold">${thNum(r.creditos)}</td>
+                <td class="px-3 py-3 text-center text-gray-600">${r.ajustes ? '−' + thNum(r.ajustes) : '0'}</td>
+                <td class="px-3 py-3 text-center text-gray-700">${thNum(r.gozadas)}</td>
+                <td class="px-3 py-3 text-center text-sky-700">${thNum(r.agendadas)}</td>
+                <td class="px-3 py-3 text-center"><span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold ${cor}">${thNum(r.saldo)}</span></td>
+                <td class="px-3 py-3 whitespace-nowrap">
+                    <button onclick="abrirModalBanco('', '${n}')" class="px-2 py-1 text-xs font-bold bg-teal-100 text-teal-700 hover:bg-teal-200 rounded">+ Lançar</button>
+                    <button onclick="bancoFiltrarMotorista('${n}')" class="px-2 py-1 text-xs font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 rounded ml-1">Extrato</button>
+                    <button onclick="removerBancoMotorista('${n}')" class="px-2 py-1 text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 rounded ml-1" title="Remover do banco de folgas">Remover</button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // seletor do extrato (mantém a escolha atual)
+    const sel = document.getElementById('bancoFiltroMotorista');
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">Todos os motoristas</option>' + todos.map(r => `<option value="${esc(r.nome)}">${esc(r.nome)}</option>`).join('');
+    sel.value = [...sel.options].some(o => o.value === atual) ? atual : '';
+    const filtro = thChaveNome(sel.value);
+
+    // extrato: lançamentos manuais + folgas que descontam do banco
+    const hoje = dataLocalStr(new Date());
+    const mov = [];
+    bancoFolgas.forEach(l => mov.push({ data: l.dataReferencia || '', nome: l.motorista, kind: l.tipo === 'debito' ? 'debito' : 'credito', dias: Number(l.dias) || 0, texto: [l.motivo, l.observacao].filter(Boolean).join(' · '), id: l.id, origem: 'banco' }));
+    folgas.filter(f => f.debitaBanco === true).forEach(f => mov.push({ data: f.dataInicio, nome: f.servidor, kind: f.dataInicio <= hoje ? 'gozada' : 'agendada', dias: diasEntre(f.dataInicio, f.dataFim), texto: `${f.tipo} · ${periodoTexto(f.dataInicio, f.dataFim)}${f.observacao ? ' · ' + f.observacao : ''}`, id: f.id, origem: 'folga' }));
+    const lista = mov.filter(m => !filtro || thChaveNome(m.nome) === filtro).sort((a, b) => String(b.data).localeCompare(String(a.data)));
+    const tag = {
+        credito: ['bg-emerald-100 text-emerald-800', 'Crédito', '+'], debito: ['bg-red-100 text-red-800', 'Ajuste (débito)', '−'],
+        gozada: ['bg-slate-200 text-slate-800', 'Folga gozada', '−'], agendada: ['bg-sky-100 text-sky-800', 'Folga agendada', '−']
+    };
+    const ex = document.getElementById('bancoExtratoBody');
+    if (!lista.length) { ex.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Nenhum lançamento encontrado.</td></tr>'; return; }
+    ex.innerHTML = lista.map(m => {
+        const t = tag[m.kind];
+        const acoes = m.origem === 'banco'
+            ? `<button onclick="abrirModalBanco('${esc(m.id)}')" class="px-2 py-1 text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 rounded">Editar</button>
+               <button onclick="excluirBanco('${esc(m.id)}')" class="px-2 py-1 text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 rounded ml-1">Excluir</button>`
+            : `<button onclick="folgasSubaba('programacao'); abrirModalFolga('${esc(m.id)}')" class="px-2 py-1 text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 rounded">Ver na programação</button>`;
+        return `<tr class="hover:bg-gray-50">
+            <td class="px-3 py-3 whitespace-nowrap text-gray-700">${m.data ? esc(formatarDataBrasil(m.data)) : '-'}</td>
+            <td class="px-3 py-3 font-bold text-gray-900">${esc(m.nome)}</td>
+            <td class="px-3 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${t[0]}">${t[1]}</span></td>
+            <td class="px-3 py-3 text-center font-bold">${t[2]}${thNum(m.dias)}</td>
+            <td class="px-3 py-3 text-gray-600 max-w-[18rem] truncate" title="${esc(m.texto)}">${esc(m.texto) || '-'}</td>
+            <td class="px-3 py-3 whitespace-nowrap">${acoes}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ---------- 2) PROGRAMAÇÃO ----------
+function folgaTipoMudou() {
+    // folga compensatória e banco de horas descontam do banco por padrão; abono e outras não
+    document.getElementById('folgaDebita').checked = TIPOS_QUE_DEBITAM.includes(document.getElementById('folgaTipo').value);
+    folgaAtualizarInfoSaldo();
+}
+function folgaAtualizarInfoSaldo() {
+    const el = document.getElementById('folgaInfoSaldo'); if (!el) return;
+    const nome = document.getElementById('folgaServidor').value.trim();
+    const marcado = document.getElementById('folgaDebita').checked;
+    const ini = document.getElementById('folgaInicio').value, fim = document.getElementById('folgaFim').value;
+    if (!nome) { el.textContent = 'Escolha o motorista para ver o saldo disponível.'; return; }
+    const saldo = thSaldoMotorista(nome, document.getElementById('folgaId').value);
+    const dias = ini && fim && fim >= ini ? diasEntre(ini, fim) : 0;
+    let txt = `Saldo disponível: ${thNum(saldo)} dia(s)`;
+    if (marcado && dias) txt += ` · esta folga usa ${dias} → ficaria ${thNum(saldo - dias)}`;
+    el.textContent = txt;
+    el.className = 'text-xs ' + (marcado && dias && saldo - dias < 0 ? 'text-red-600 font-bold' : 'text-gray-600');
+}
+
+function abrirModalFolga(id, previa) {
     const f = id ? folgas.find(x => x.id === id) : null;
+    folgasPreencherSugestoes();
     document.getElementById('formFolga').reset();
     document.getElementById('folgaId').value = f ? f.id : '';
-    document.getElementById('tituloModalFolga').textContent = f ? 'Editar Folga' : 'Registrar Folga';
+    document.getElementById('tituloModalFolga').textContent = f ? 'Editar Folga' : 'Programar Folga';
     if (f) {
         document.getElementById('folgaServidor').value = f.servidor || '';
         document.getElementById('folgaLotacao').value = f.lotacao || '';
@@ -5011,11 +5502,15 @@ function abrirModalFolga(id) {
         document.getElementById('folgaInicio').value = f.dataInicio || '';
         document.getElementById('folgaFim').value = f.dataFim || '';
         document.getElementById('folgaObs').value = f.observacao || '';
+        document.getElementById('folgaDebita').checked = f.debitaBanco === true;
     } else {
-        const hoje = dataLocalStr(new Date());
-        document.getElementById('folgaInicio').value = hoje;
-        document.getElementById('folgaFim').value = hoje;
+        const dia = (previa && previa.data) || dataLocalStr(new Date());
+        document.getElementById('folgaInicio').value = dia;
+        document.getElementById('folgaFim').value = dia;
+        if (previa && previa.motorista) document.getElementById('folgaServidor').value = previa.motorista;
+        document.getElementById('folgaDebita').checked = TIPOS_QUE_DEBITAM.includes(document.getElementById('folgaTipo').value);
     }
+    folgaAtualizarInfoSaldo();
     document.getElementById('modalFolga').classList.remove('hidden');
 }
 function fecharModalFolga() { document.getElementById('modalFolga').classList.add('hidden'); }
@@ -5029,13 +5524,32 @@ async function salvarFolga(e) {
     if (fim < inicio) { mostrarMensagem('A data final não pode ser anterior à inicial.', 'error'); return; }
 
     const id = document.getElementById('folgaId').value;
+    const nome = document.getElementById('folgaServidor').value.trim();
+    const debita = document.getElementById('folgaDebita').checked;
+    const chave = thChaveNome(nome);
+
+    // 1) não permite duas folgas sobrepostas para o mesmo motorista
+    const choque = folgas.find(f => f.id !== id && thChaveNome(f.servidor) === chave && f.dataInicio <= fim && f.dataFim >= inicio);
+    if (choque) { mostrarMensagem(`${nome} já tem folga programada em ${periodoTexto(choque.dataInicio, choque.dataFim)}.`, 'error'); return; }
+
+    // 2) saldo do banco
+    const dias = diasEntre(inicio, fim);
+    if (debita) {
+        const saldo = thSaldoMotorista(nome, id);
+        if (saldo < dias && !confirm(`Saldo insuficiente no banco: ${thNum(saldo)} dia(s) disponível(is) para ${dias} dia(s) de folga. Programar mesmo assim (o saldo ficará negativo)?`)) return;
+    }
+    // 3) demandas do motorista no período
+    const demandasNoPeriodo = demandas.filter(d => d.status !== 'Concluída' && thChaveNome(d.nomeMotorista) === chave && d.dataDemanda >= inicio && d.dataDemanda <= fim);
+    if (demandasNoPeriodo.length && !confirm(`${nome} tem ${demandasNoPeriodo.length} demanda(s) não concluída(s) nesse período. Programar a folga mesmo assim?`)) return;
+
     const dados = {
-        servidor: document.getElementById('folgaServidor').value.trim(),
+        servidor: nome,
         lotacao: document.getElementById('folgaLotacao').value.trim(),
         tipo: document.getElementById('folgaTipo').value,
         dataInicio: inicio,
         dataFim: fim,
-        observacao: document.getElementById('folgaObs').value.trim()
+        observacao: document.getElementById('folgaObs').value.trim(),
+        debitaBanco: debita
     };
     btn.disabled = true; btn.textContent = 'Salvando...';
     try {
@@ -5044,7 +5558,7 @@ async function salvarFolga(e) {
         } else {
             await db.collection('folgas').add({ ...dados, cadastradoPor: usuarioLogado, dataCadastro: new Date().toISOString() });
         }
-        mostrarMensagem(id ? 'Folga atualizada!' : 'Folga registrada!', 'success');
+        mostrarMensagem(id ? 'Folga atualizada!' : 'Folga programada!', 'success');
         fecharModalFolga();
     } catch (err) {
         console.error('Erro ao salvar folga', err);
@@ -5057,7 +5571,7 @@ async function salvarFolga(e) {
 async function excluirFolga(id) {
     if (!ehAdminAutorizado()) return;
     const f = folgas.find(x => x.id === id);
-    if (!confirm(`Excluir a folga de ${f ? f.servidor : 'este servidor'}?`)) return;
+    if (!confirm(`Excluir a folga de ${f ? f.servidor : 'este motorista'}?${f && f.debitaBanco ? ' Os dias voltam para o saldo do banco.' : ''}`)) return;
     try {
         await db.collection('folgas').doc(id).delete();
         mostrarMensagem('Folga excluída.', 'success');
@@ -5067,22 +5581,103 @@ async function excluirFolga(id) {
     }
 }
 
+// clique em uma célula da grade: edita a folga existente ou programa uma nova naquele dia
+function gradeFolgaClique(linha, dia) {
+    const l = thGradeLinhas[linha]; if (!l) return;
+    const f = l.porDia[dia];
+    if (f) abrirModalFolga(f.id); else abrirModalFolga('', { motorista: l.nome, data: dia });
+}
+
+function renderGradeFolgas(mes, busca, tipo, soComFolga, todosSistema) {
+    const box = document.getElementById('gradeFolgas'); if (!box) return;
+    const [a, m] = mes.split('-').map(Number);
+    const nDias = new Date(a, m, 0).getDate();
+    const dias = Array.from({ length: nDias }, (_, i) => `${mes}-${String(i + 1).padStart(2, '0')}`);
+    const hoje = dataLocalStr(new Date());
+    const ini = dias[0], fim = dias[nDias - 1];
+
+    // linhas = motoristas do banco de folgas + nomes que aparecem em folgas do mês (+ todos do sistema, se marcado)
+    const nomes = new Map();
+    thNomesBanco().forEach(n => nomes.set(thChaveNome(n), n));
+    if (todosSistema) motoristas.forEach(mt => { const k = thChaveNome(mt.nome); if (!nomes.has(k)) nomes.set(k, String(mt.nome).trim()); });
+    folgas.forEach(f => { if (f.dataInicio <= fim && f.dataFim >= ini) { const k = thChaveNome(f.servidor); if (k && !nomes.has(k)) nomes.set(k, String(f.servidor).trim()); } });
+    let linhas = [...nomes.entries()].map(([k, nome]) => ({ chave: k, nome, porDia: {}, total: 0 }));
+    const idx = new Map(linhas.map((l, i) => [l.chave, i]));
+    folgas.forEach(f => {
+        if (tipo && f.tipo !== tipo) return;
+        if (!(f.dataInicio <= fim && f.dataFim >= ini)) return;
+        const l = linhas[idx.get(thChaveNome(f.servidor))]; if (!l) return;
+        dias.forEach(d => { if (d >= f.dataInicio && d <= f.dataFim) { l.porDia[d] = f; l.total++; } });
+    });
+    if (busca) linhas = linhas.filter(l => semAcento(l.nome).includes(busca) || folgas.some(f => thChaveNome(f.servidor) === l.chave && semAcento(f.lotacao).includes(busca)));
+    if (soComFolga) linhas = linhas.filter(l => l.total > 0);
+    linhas.sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR'));
+    thGradeLinhas = linhas;
+
+    // demandas pendentes por motorista/dia (para sinalizar conflito)
+    const conflitos = new Map();
+    demandas.forEach(d => { if (d.status !== 'Concluída' && d.nomeMotorista && d.dataDemanda >= ini && d.dataDemanda <= fim) { const k = thChaveNome(d.nomeMotorista) + '|' + d.dataDemanda; conflitos.set(k, (conflitos.get(k) || 0) + 1); } });
+
+    const sem = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+    const cab = dias.map(d => {
+        const dt = criarDataBrasilia(d), fds = dt.getDay() === 0 || dt.getDay() === 6, eh = d === hoje;
+        return `<th class="px-0 py-1 text-center text-[10px] font-bold min-w-[30px] ${eh ? 'bg-teal-600 text-white' : fds ? 'bg-gray-500 text-gray-100' : 'bg-gray-700 text-white'}"><div>${sem[dt.getDay()]}</div><div class="text-xs">${dt.getDate()}</div></th>`;
+    }).join('');
+
+    if (!linhas.length) {
+        box.innerHTML = '<p class="px-4 py-10 text-center text-gray-500">Nenhum motorista para exibir. Cadastre motoristas na aba Banco de Folgas ou marque "Incluir todos os motoristas do sistema".</p>';
+    } else {
+        const corpo = linhas.map((l, i) => {
+            const cels = dias.map(d => {
+                const f = l.porDia[d];
+                const dt = criarDataBrasilia(d), fds = dt.getDay() === 0 || dt.getDay() === 6;
+                const conf = conflitos.get(l.chave + '|' + d);
+                const fundo = fds ? 'bg-gray-100' : 'bg-white';
+                if (f) {
+                    const cor = TIPOS_FOLGA_COR[f.tipo] || '#64748b';
+                    const tip = `${l.nome} — ${f.tipo} (${periodoTexto(f.dataInicio, f.dataFim)})${f.debitaBanco ? ' · desconta do banco' : ''}${conf ? ` · ⚠ ${conf} demanda(s) neste dia` : ''}${f.observacao ? ' · ' + f.observacao : ''}`;
+                    return `<td class="p-0.5 border-l border-gray-100 ${fundo} cursor-pointer" onclick="gradeFolgaClique(${i},'${d}')" title="${esc(tip)}"><div class="h-7 rounded flex items-center justify-center text-[11px] font-bold text-white" style="background:${cor}">${conf ? '⚠' : ''}</div></td>`;
+                }
+                return `<td class="p-0.5 border-l border-gray-100 ${fundo} cursor-pointer hover:bg-teal-50" onclick="gradeFolgaClique(${i},'${d}')" title="Programar folga para ${esc(l.nome)} em ${formatarDataBrasil(d)}"><div class="h-7 rounded flex items-center justify-center text-[11px] text-amber-600 font-bold">${conf ? '⚠' : ''}</div></td>`;
+            }).join('');
+            return `<tr class="border-t border-gray-100"><td class="sticky left-0 z-10 bg-white px-3 py-1.5 font-bold text-gray-900 whitespace-nowrap border-r border-gray-200 min-w-[10rem]">${esc(l.nome)}</td>${cels}<td class="px-2 py-1.5 text-center font-extrabold text-teal-700 bg-teal-50 border-l border-gray-200">${l.total || '-'}</td></tr>`;
+        }).join('');
+        const rodape = dias.map(d => {
+            const n = linhas.filter(l => l.porDia[d]).length;
+            return `<td class="py-1 text-center text-[11px] font-bold ${n ? 'text-teal-800 bg-teal-50' : 'text-gray-300'} border-l border-gray-100" title="${n} motorista(s) de folga em ${formatarDataBrasil(d)}">${n || ''}</td>`;
+        }).join('');
+        box.innerHTML = `<table class="border-collapse text-sm w-full">
+            <thead><tr><th class="sticky left-0 z-20 bg-gray-700 text-white px-3 py-2 text-left text-xs uppercase tracking-wider min-w-[10rem]">Motorista</th>${cab}<th class="bg-gray-700 text-white px-2 text-[10px] uppercase">Dias</th></tr></thead>
+            <tbody>${corpo}</tbody>
+            <tfoot><tr class="border-t-2 border-gray-200"><td class="sticky left-0 z-10 bg-gray-50 px-3 py-1 text-xs font-bold text-gray-600 border-r border-gray-200">De folga no dia</td>${rodape}<td class="bg-gray-50"></td></tr></tfoot>
+        </table>`;
+    }
+}
+
 function renderFolgas() {
+    renderBancoFolgas();
     const tbody = document.getElementById('folgasTableBody');
     if (!tbody) return;
+    // estado visual das abas (na primeira vez)
+    if (!document.getElementById('subabaBanco').dataset.iniciado) { document.getElementById('subabaBanco').dataset.iniciado = '1'; folgasSubaba(folgasSubabaAtual); return; }
+
     const mesEl = document.getElementById('filtroFolgasMes');
     if (mesEl && !mesEl.dataset.iniciado) { mesEl.value = dataLocalStr(new Date()).slice(0, 7); mesEl.dataset.iniciado = '1'; }
-    const mes = mesEl ? mesEl.value : '';
+    const mes = (mesEl && mesEl.value) || dataLocalStr(new Date()).slice(0, 7);
     const busca = semAcento((document.getElementById('filtroFolgasBusca') || {}).value || '');
     const tipo = (document.getElementById('filtroFolgasTipo') || {}).value || '';
+    const soCom = !!(document.getElementById('filtroFolgasSoComFolga') || {}).checked;
+    const todosSis = !!(document.getElementById('filtroFolgasTodosSistema') || {}).checked;
 
+    const leg = document.getElementById('folgasLegenda');
+    if (leg) leg.innerHTML = Object.entries(TIPOS_FOLGA_COR).map(([t, c]) => `<span class="inline-flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded" style="background:${c}"></span>${esc(t)}</span>`).join('') + '<span class="inline-flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded bg-gray-200 border border-gray-300"></span>Fim de semana</span>';
+
+    renderGradeFolgas(mes, busca, tipo, soCom, todosSis);
+
+    const [a, mm] = mes.split('-').map(Number);
+    const iniMes = `${mes}-01`, fimMes = `${mes}-${String(new Date(a, mm, 0).getDate()).padStart(2, '0')}`;
     const lista = folgas.filter(f => {
-        if (mes) {
-            const [a, m] = mes.split('-').map(Number);
-            const ini = `${mes}-01`;
-            const fim = `${mes}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`;
-            if (!(f.dataInicio <= fim && f.dataFim >= ini)) return false;
-        }
+        if (!(f.dataInicio <= fimMes && f.dataFim >= iniMes)) return false;
         if (tipo && f.tipo !== tipo) return false;
         if (busca && !semAcento(`${f.servidor} ${f.lotacao}`).includes(busca)) return false;
         return true;
@@ -5092,20 +5687,21 @@ function renderFolgas() {
     const em7 = dataLocalStr(new Date(Date.now() + 7 * 86400000));
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
     set('kpiFolgasPeriodo', lista.length);
-    set('kpiFolgasServidores', new Set(lista.map(f => semAcento(f.servidor).trim())).size);
+    set('kpiFolgasServidores', new Set(lista.map(f => thChaveNome(f.servidor))).size);
     set('kpiFolgasProx', folgas.filter(f => f.dataFim >= hoje && f.dataInicio <= em7).length);
 
     if (lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Nenhuma folga encontrada para o filtro selecionado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Nenhuma folga programada para o filtro selecionado.</td></tr>';
         return;
     }
     tbody.innerHTML = lista.map(f => `
         <tr class="hover:bg-gray-50">
             <td class="px-3 py-3 font-bold text-gray-900">${esc(f.servidor)}</td>
-            <td class="px-3 py-3 text-gray-700">${esc(f.lotacao)}</td>
-            <td class="px-3 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap bg-teal-100 text-teal-800">${esc(f.tipo)}</span></td>
+            <td class="px-3 py-3 text-gray-700">${esc(f.lotacao) || '-'}</td>
+            <td class="px-3 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white" style="background:${TIPOS_FOLGA_COR[f.tipo] || '#64748b'}">${esc(f.tipo)}</span></td>
             <td class="px-3 py-3 whitespace-nowrap text-gray-700">${esc(periodoTexto(f.dataInicio, f.dataFim))}</td>
             <td class="px-3 py-3 text-center font-bold">${diasEntre(f.dataInicio, f.dataFim)}</td>
+            <td class="px-3 py-3 text-center text-xs font-bold ${f.debitaBanco ? 'text-teal-700' : 'text-gray-400'}">${f.debitaBanco ? 'Desconta' : '-'}</td>
             <td class="px-3 py-3 text-gray-600 max-w-[10rem] truncate" title="${esc(f.observacao)}">${esc(f.observacao) || '-'}</td>
             <td class="px-3 py-3 whitespace-nowrap">
                 <button onclick="abrirModalFolga('${esc(f.id)}')" class="px-2 py-1 text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 rounded">Editar</button>
