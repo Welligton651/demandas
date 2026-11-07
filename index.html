@@ -574,7 +574,11 @@
                         </div>
                         
                         <div class="bg-gray-50/80 p-4 rounded-lg border border-gray-200 shadow-inner space-y-4">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Filtrar por Status</label>
+                                    <div class="th-ms" id="msStatus"></div>
+                                </div>
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Filtrar por Turno</label>
                                     <div class="th-ms" id="msTurno"></div>
@@ -1009,9 +1013,13 @@
                                 <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
                                 Controle de Folgas
                             </h2>
-                            <p class="text-teal-100 mt-1">Banco de folgas e programação dos motoristas</p>
+                            <p class="text-teal-100 mt-1">Banco de folgas e programação do gozo dos motoristas</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="relFolgasAbrir()" class="px-4 py-2.5 bg-teal-800/40 text-white hover:bg-teal-800/60 border border-white/30 font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                Relatórios
+                            </button>
                             <button id="btnNovoCreditoFolga" onclick="abrirModalBanco()" class="px-4 py-2.5 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-lg shadow-sm transition-colors flex items-center justify-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                 Lançar no banco
@@ -1282,6 +1290,52 @@
     </div>
 
     <!-- MODAL DE FOLGA (programação) -->
+    <div id="modalRelFolgas" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[150] p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-4 rounded-t-2xl flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Relatórios de Folgas</h3>
+                <button type="button" onclick="relFolgasFechar()" class="text-teal-100 hover:text-white" aria-label="Fechar"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label for="relFolgasTipo" class="block text-sm font-bold text-gray-700 mb-1">Tipo de relatório</label>
+                    <select id="relFolgasTipo" onchange="relFolgasTipoMudou()" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
+                        <option value="programacao">Programação de folgas (atuais e passadas)</option>
+                        <option value="saldo">Saldo do banco de folgas</option>
+                        <option value="extrato">Extrato do banco de folgas</option>
+                    </select>
+                </div>
+                <div id="relFolgasBlocoPeriodo">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Período</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="date" id="relFolgasDe" aria-label="De" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                        <input type="date" id="relFolgasAte" aria-label="Até" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-2 text-xs font-semibold">
+                        <button type="button" onclick="relFolgasAtalho('mes')" class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 hover:bg-teal-200">Mês atual</button>
+                        <button type="button" onclick="relFolgasAtalho('anterior')" class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 hover:bg-teal-200">Mês anterior</button>
+                        <button type="button" onclick="relFolgasAtalho('ano')" class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 hover:bg-teal-200">Ano atual</button>
+                        <button type="button" onclick="relFolgasAtalho('tudo')" class="px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200">Tudo</button>
+                    </div>
+                </div>
+                <p id="relFolgasBlocoSaldoInfo" class="hidden text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-3">O saldo mostra a posição de hoje de cada motorista (créditos, ajustes, folgas gozadas e agendadas), por isso não usa período.</p>
+                <div>
+                    <label for="relFolgasMotorista" class="block text-sm font-bold text-gray-700 mb-1">Motorista</label>
+                    <select id="relFolgasMotorista" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"></select>
+                </div>
+                <div id="relFolgasBlocoTipoFolga">
+                    <label for="relFolgasTipoFolga" class="block text-sm font-bold text-gray-700 mb-1">Tipo de folga</label>
+                    <select id="relFolgasTipoFolga" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white"></select>
+                </div>
+                <div class="flex flex-wrap gap-2 justify-end pt-2">
+                    <button type="button" onclick="relFolgasVisualizar()" class="px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm font-medium">Visualizar (HTML)</button>
+                    <button type="button" onclick="relFolgasPDF()" class="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium">Gerar PDF</button>
+                    <button type="button" id="relFolgasBtnExcel" onclick="relFolgasExcel()" class="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">Baixar Excel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="modalFolga" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[150] p-4 hidden">
         <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl max-h-[92vh] overflow-y-auto">
             <div class="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-4 rounded-t-2xl flex justify-between items-center">
@@ -2016,16 +2070,32 @@
             { valor: 'tarde', rotulo: 'Tarde (12:00 - 17:59)', curto: 'Tarde' },
             { valor: 'noite', rotulo: 'Noite (18:00 - 05:59)', curto: 'Noite' }
         ];
-        const thFiltros = { turno: new Set(), setor: new Set(), solicitante: new Set(), datas: new Set() };
+        const TH_STATUS_PADRAO = 'Concluída';
+        const TH_STATUS_BASE = [
+            { valor: 'Pendente', rotulo: 'Pendente', curto: 'Pendente', cor: '#f59e0b' },
+            { valor: 'Concluída', rotulo: 'Concluída', curto: 'Concluída', cor: '#22c55e' },
+            { valor: 'Cancelada', rotulo: 'Cancelada', curto: 'Cancelada', cor: '#ef4444' },
+            { valor: 'Cancelada pelo setor solicitante', rotulo: 'Cancelada pelo solicitante', curto: 'Canc. pelo solicitante', cor: '#f97316' }
+        ];
+        const thEhCancelada = (st) => String(st || '').indexOf('Cancelada') === 0;
+        function thStatusLista() {
+            const lista = TH_STATUS_BASE.map(x => ({ valor: x.valor, rotulo: x.rotulo }));
+            [...new Set(demandas.map(d => d.status))].filter(v => v && !lista.some(x => x.valor === v))
+                .sort((a, b) => String(a).localeCompare(String(b), 'pt-BR')).forEach(v => lista.push({ valor: v, rotulo: v }));
+            return lista;
+        }
+        function thStatusRotulo(v) { const b = TH_STATUS_BASE.find(x => x.valor === v); return b ? b.rotulo : (v || '-'); }
+        function thStatusCor(v) { const b = TH_STATUS_BASE.find(x => x.valor === v); return b ? b.cor : (thEhCancelada(v) ? '#ef4444' : '#3b82f6'); }
+        const thFiltros = { status: new Set([TH_STATUS_PADRAO]), turno: new Set(), setor: new Set(), solicitante: new Set(), datas: new Set() };
         const thMsConfig = {
+            status:      { el: 'msStatus',      todos: 'Todos os Status',       itens: () => thStatusLista() },
             turno:       { el: 'msTurno',       todos: 'Todos os Turnos',       itens: () => TH_TURNOS.map(t => ({ valor: t.valor, rotulo: t.rotulo })) },
             setor:       { el: 'msSetor',       todos: 'Todos os Setores',      itens: () => thListaUnica('setor') },
             solicitante: { el: 'msSolicitante', todos: 'Todos os Solicitantes', itens: () => thListaUnica('solicitante') }
         };
 
         function thListaUnica(campo) {
-            const concl = demandas.filter(d => d.status === 'Concluída');
-            return [...new Set(concl.map(d => d[campo]))].filter(Boolean).sort((x, y) => String(x).localeCompare(String(y), 'pt-BR'))
+            return [...new Set(demandas.map(d => d[campo]))].filter(Boolean).sort((x, y) => String(x).localeCompare(String(y), 'pt-BR'))
                 .map(v => ({ valor: v, rotulo: v }));
         }
 
@@ -2035,7 +2105,7 @@
             const itens = cfg.itens().filter(i => sel.has(i.valor));
             if (sel.size === 1) {
                 const t = chave === 'turno' ? TH_TURNOS.find(x => x.valor === [...sel][0]) : null;
-                return t ? t.curto : String([...sel][0]);
+                return t ? t.curto : (chave === 'status' ? thStatusRotulo([...sel][0]) : String([...sel][0]));
             }
             return sel.size + ' selecionados';
         }
@@ -2125,6 +2195,7 @@
             inp.value = '';
             thFiltrosAtualizou();
         }
+        function thStatusRemover(v) { thFiltros.status.delete(v); thFiltrosAtualizou(); }
         function thFiltroRemoverData(v) { thFiltros.datas.delete(v); thFiltrosAtualizou(); }
 
         function thFiltrosLimparTudo() {
@@ -2138,6 +2209,7 @@
             if (!box) return;
             const chip = (txt, fn) => `<span class="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-semibold">${esc(txt)}<button type="button" class="w-5 h-5 rounded-full hover:bg-purple-200 flex items-center justify-center" aria-label="Remover filtro" onclick="${fn}">&times;</button></span>`;
             let html = '';
+            [...thFiltros.status].forEach(v => { html += chip('● ' + thStatusRotulo(v), `thStatusRemover('${v.replace(/'/g, "\\'")}')`); });
             [...thFiltros.datas].sort().forEach(d => { html += chip('📅 ' + formatarDataBrasil(d), `thFiltroRemoverData('${d}')`); });
             const total = Object.values(thFiltros).reduce((s, x) => s + x.size, 0);
             html = total ? html + `<button type="button" onclick="thFiltrosLimparTudo()" class="text-xs font-semibold text-gray-500 underline hover:text-gray-800 ml-1">Limpar todos os filtros</button>` : '';
@@ -2169,10 +2241,11 @@
             if (hora >= 12 && hora < 18) return 'tarde';
             return 'noite';
         }
-        function getDemandasConcluidas() {
+        // Lista filtrada (nome mantido por compatibilidade). ignorarStatus=true devolve o recorte SEM o filtro de status (usado no panorama).
+        function getDemandasConcluidas(ignorarStatus) {
             const f = thFiltros;
             return demandas.filter(d => {
-                if (d.status !== 'Concluída') return false;
+                if (!ignorarStatus && f.status.size && !f.status.has(d.status)) return false;
                 if (f.setor.size && !f.setor.has(d.setor)) return false;
                 if (f.solicitante.size && !f.solicitante.has(d.solicitante)) return false;
                 if (f.datas.size && !f.datas.has(d.dataDemanda)) return false;
@@ -2184,8 +2257,9 @@
         // Texto-resumo para o cabeçalho dos relatórios
         function thResumoFiltro(chave) {
             const sel = thFiltros[chave];
-            if (!sel.size) return 'Todos';
+            if (!sel.size) return chave === 'status' ? 'Todos os status' : 'Todos';
             if (chave === 'turno') return TH_TURNOS.filter(t => sel.has(t.valor)).map(t => t.rotulo).join(' | ');
+            if (chave === 'status') return [...sel].map(thStatusRotulo).join(', ');
             if (chave === 'datas') return [...sel].sort().map(formatarDataBrasil).join(', ');
             return [...sel].join(', ');
         }
@@ -4017,16 +4091,31 @@
         
         // ==========================================
 
+        function thTituloRelatorio() {
+            const sel = [...thFiltros.status];
+            if (!sel.length) return 'Relatório de Demandas - Todos os status';
+            if (sel.length === 1) {
+                const m = { 'Concluída': 'Concluídas', 'Pendente': 'Pendentes', 'Cancelada': 'Canceladas', 'Cancelada pelo setor solicitante': 'Canceladas pelo solicitante' }[sel[0]];
+                return 'Relatório de Demandas ' + (m || sel[0]);
+            }
+            return 'Relatório de Demandas - ' + sel.map(thStatusRotulo).join(' + ');
+        }
+        function thBadgeStatus(st) {
+            const c = thStatusCor(st);
+            return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;color:${c};background:${c}1f;border:1px solid ${c}55;white-space:nowrap;">${esc(thStatusRotulo(st))}</span>`;
+        }
+
         function gerarTabelaRelatorio() {
             const concluidas = getDemandasConcluidas();
             let tbody = '';
             
             if (concluidas.length === 0) {
-                tbody = '<tr><td colspan="9" style="padding: 15px; text-align: center; color: #6b7280;">Nenhuma demanda concluída encontrada com os filtros atuais.</td></tr>';
+                tbody = '<tr><td colspan="10" style="padding: 15px; text-align: center; color: #6b7280;">Nenhuma demanda encontrada com os filtros atuais.</td></tr>';
             } else {
                 concluidas.forEach(d => {
                     tbody += `
                         <tr style="border-bottom: 1px solid #e5e7eb; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f9fafb'" onmouseout="this.style.backgroundColor='transparent'">
+                            <td style="padding: 12px 8px; font-size: 14px;">${thBadgeStatus(d.status)}</td>
                             <td style="padding: 12px 8px; font-size: 14px;">${formatarDataBrasil(d.dataDemanda)}</td>
                             <td style="padding: 12px 8px; font-size: 14px; font-weight: bold;">${esc(d.horario)}</td>
                             <td style="padding: 12px 8px; font-size: 14px;">${esc(d.solicitante)}<br><span style="font-size: 12px; color: #6b7280;">${esc(d.setor)}</span></td>
@@ -4048,6 +4137,7 @@
                 <table id="tabelaRelatorio" style="width: 100%; border-collapse: collapse; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; text-align: left; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <thead style="background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #6b7280 100%); color: white;">
                         <tr>
+                            <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
                             <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Data</th>
                             <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Hora</th>
                             <th style="padding: 15px 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">Solicitante / Setor</th>
@@ -4130,7 +4220,7 @@
             const quant = [], qual = [];
 
             const periodo = r.datas.length ? `entre ${formatarDataBrasil(r.datas[0])} e ${formatarDataBrasil(r.datas[r.datas.length - 1])}` : 'no período';
-            quant.push(`No recorte filtrado foram concluídas <strong>${total}</strong> demanda(s) ${periodo}, distribuídas em <strong>${r.porSetor.length}</strong> setor(es) e <strong>${r.porSolic.length}</strong> solicitante(s).`);
+            quant.push(`No recorte filtrado (${esc(thResumoFiltro('status'))}) há <strong>${total}</strong> demanda(s) ${periodo}, distribuídas em <strong>${r.porSetor.length}</strong> setor(es) e <strong>${r.porSolic.length}</strong> solicitante(s).`);
             if (r.porSetor.length) {
                 const t = r.porSetor[0];
                 quant.push(`O setor mais atendido foi <strong>${esc(t.nome)}</strong>, com <strong>${t.n}</strong> demanda(s) (${thPct(t.n, total)} do total)${r.porSetor.length > 1 ? `, seguido de ${lista(r.porSetor.slice(1), 2)}` : ''}.`);
@@ -4185,7 +4275,7 @@
             const html = `
                 <div class="mt-4 space-y-4">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        ${card('Total de demandas', r.total, 'concluídas no recorte filtrado', '#7c3aed')}
+                        ${card('Total de demandas', r.total, esc(thResumoFiltro('status')) + ' no recorte', '#7c3aed')}
                         ${card('Setor mais atendido', esc(setorTop.nome), `${setorTop.n} demanda(s) · ${thPct(setorTop.n, r.total)}`, '#0ea5e9')}
                         ${card('Mês de maior volume', thMesRotulo(r.mesPico.chave), `${r.mesPico.n} demanda(s)`, '#14b8a6')}
                         ${card('Turno predominante', turnoNome, `${thPct(r.turnoTop[1], r.total)} das demandas`, '#f59e0b')}
@@ -4216,31 +4306,114 @@
             return { html, dados: { meses: r.meses.map(thMesRotulo), serieMes: r.serieMes, fatias, cores: TH_CORES_PIZZA } };
         }
 
+        // ====== PANORAMA POR STATUS E SETOR (ignora o filtro de status; respeita os demais) ======
+        function thCalcularPanorama() {
+            const lista = getDemandasConcluidas(true);
+            const ordem = thStatusLista().map(x => x.valor);
+            const porStatus = {};
+            lista.forEach(d => { const k = d.status || 'Sem status'; porStatus[k] = (porStatus[k] || 0) + 1; });
+            const totais = Object.keys(porStatus).sort((a, b) => (ordem.indexOf(a) < 0 ? 99 : ordem.indexOf(a)) - (ordem.indexOf(b) < 0 ? 99 : ordem.indexOf(b)))
+                .map(k => ({ status: k, rot: thStatusRotulo(k), n: porStatus[k], cor: thStatusCor(k) }));
+            const mapa = new Map();
+            lista.forEach(d => {
+                const nome = String(d.setor || 'Sem setor').trim();
+                const chave = nome.toUpperCase();
+                const r = mapa.get(chave) || { nome, pend: 0, conc: 0, canc: 0, cancSol: 0, outros: 0, total: 0 };
+                if (d.status === 'Pendente') r.pend++;
+                else if (d.status === 'Concluída') r.conc++;
+                else if (d.status === 'Cancelada pelo setor solicitante') r.cancSol++;
+                else if (thEhCancelada(d.status)) r.canc++;
+                else r.outros++;
+                r.total++; mapa.set(chave, r);
+            });
+            const setores = [...mapa.values()].map(r => Object.assign(r, { cancTotal: r.canc + r.cancSol, pct: r.total ? (r.canc + r.cancSol) / r.total : 0 }))
+                .sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome, 'pt-BR'));
+            const ranking = setores.filter(r => r.cancTotal > 0)
+                .sort((a, b) => b.cancTotal - a.cancTotal || b.pct - a.pct || a.nome.localeCompare(b.nome, 'pt-BR'));
+            const totalCanc = ranking.reduce((s, r) => s + r.cancTotal, 0);
+            return { total: lista.length, totais, setores, ranking, totalCanc };
+        }
+
+        function gerarPanoramaHtml() {
+            const pn = thCalcularPanorama();
+            if (!pn.total) return { html: '', dados: null, pn };
+            const chip = (t) => `<div class="card-resumo bg-white rounded-xl border border-gray-200 shadow-sm p-4 border-l-4" style="border-left-color:${t.cor}"><p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">${esc(t.rot)}</p><p class="text-3xl font-extrabold text-gray-900 mt-1 leading-tight">${t.n}</p><p class="text-xs text-gray-500 mt-1">${thPct(t.n, pn.total)} do recorte</p></div>`;
+            const th = 'padding:8px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;text-align:center;';
+            const td = 'padding:7px 6px;font-size:13px;text-align:center;border-top:1px solid #f3f4f6;';
+            const linhas = pn.setores.map(r => `<tr><td style="${td}text-align:left;font-weight:600;color:#1f2937;">${esc(r.nome)}</td><td style="${td}">${r.pend || '-'}</td><td style="${td}">${r.conc || '-'}</td><td style="${td}">${r.canc || '-'}</td><td style="${td}">${r.cancSol || '-'}</td><td style="${td}font-weight:700;">${r.total}</td><td style="${td}font-weight:700;color:${r.cancTotal ? '#dc2626' : '#6b7280'};">${r.cancTotal ? thPct(r.cancTotal, r.total) : '0%'}</td></tr>`).join('');
+            const rank = pn.ranking.length
+                ? `<table class="w-full text-sm"><tbody>${pn.ranking.map((r, i) => `<tr class="border-t border-gray-100"><td class="py-1.5 pr-2 text-gray-500">${i + 1}º</td><td class="py-1.5 pr-2 font-medium text-gray-800">${esc(r.nome)}</td><td class="py-1.5 pr-2 text-right font-bold text-red-600">${r.cancTotal}</td><td class="py-1.5 text-right text-gray-500">${thPct(r.cancTotal, r.total)} dos pedidos do setor</td></tr>`).join('')}</tbody></table>`
+                : '<p class="text-sm text-gray-500">Nenhum cancelamento no recorte filtrado.</p>';
+            const lider = pn.ranking[0];
+            const html = `
+                <div class="mt-6">
+                    <h2 class="text-base font-extrabold text-gray-800 mb-1">Panorama por status e setor</h2>
+                    <p class="text-xs text-gray-500 mb-3">Considera todos os status (os demais filtros continuam valendo), para comparar o que foi concluído, pendente ou cancelado em cada setor.</p>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">${pn.totais.map(chip).join('')}</div>
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-4">
+                        <div class="card-resumo lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                            <h3 class="text-sm font-bold text-gray-800 mb-3">Distribuição por status</h3>
+                            <div style="position:relative;height:240px"><canvas id="graficoStatus"></canvas></div>
+                        </div>
+                        <div class="card-resumo lg:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                            <h3 class="text-sm font-bold text-gray-800 mb-3">Ranking de cancelamentos por setor</h3>
+                            ${pn.ranking.length ? '<div style="position:relative;height:' + Math.max(180, Math.min(pn.ranking.length, 10) * 34 + 40) + 'px"><canvas id="graficoCancel"></canvas></div>' : rank}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-4">
+                        <div class="card-resumo lg:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            <h3 class="text-sm font-bold text-gray-800 p-4 pb-2">Status por setor</h3>
+                            <table style="width:100%;border-collapse:collapse;"><thead style="background:#1f2937;color:#fff;"><tr><th style="${th}text-align:left;">Setor</th><th style="${th}">Pend.</th><th style="${th}">Concl.</th><th style="${th}">Canc.</th><th style="${th}">Canc. solic.</th><th style="${th}">Total</th><th style="${th}">% canc.</th></tr></thead><tbody>${linhas}</tbody></table>
+                        </div>
+                        <div class="card-resumo lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                            <h3 class="text-sm font-bold text-gray-800 mb-2">Quem mais cancela</h3>
+                            ${lider ? `<p class="text-sm text-gray-700 mb-3"><strong>${esc(lider.nome)}</strong> lidera com <strong>${lider.cancTotal}</strong> cancelamento(s) (${thPct(lider.cancTotal, pn.totalCanc)} de ${pn.totalCanc} no total).</p>` : ''}
+                            ${pn.ranking.length ? rank : ''}
+                        </div>
+                    </div>
+                </div>`;
+            const dados = { totais: pn.totais, rank: pn.ranking.slice(0, 10).map(r => ({ nome: r.nome, n: r.cancTotal })) };
+            return { html, dados, pn };
+        }
+
         // Script que roda dentro da janela do relatório e desenha os gráficos
-        function thScriptGraficos(dados) {
-            if (!dados) return '';
-            const json = JSON.stringify(dados).replace(/</g, '\\u003c');
+        function thScriptGraficos(dados, dadosPan) {
+            if (!dados && !dadosPan) return '';
+            dados = dados || null;
+            const json = JSON.stringify({ r: dados, p: dadosPan || null }).replace(/</g, '\\u003c');
             return `
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
                 <script>
                     (function () {
-                        var d = ${json};
+                        var all = ${json}; var d = all.r, pp = all.p;
                         function desenhar() {
                             try {
                                 if (typeof Chart === 'undefined') { setTimeout(desenhar, 150); return; }
                                 Chart.defaults.animation = false;
-                                new Chart(document.getElementById('graficoMensal'), {
+                                if (d && document.getElementById('graficoMensal')) new Chart(document.getElementById('graficoMensal'), {
                                     type: 'bar',
                                     data: { labels: d.meses, datasets: [{ label: 'Demandas', data: d.serieMes, backgroundColor: '#7c3aed', borderRadius: 6 }] },
                                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
                                         scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } }
                                 });
-                                var total = d.fatias.reduce(function (s, f) { return s + f.n; }, 0);
+                                if (d && document.getElementById('graficoSetores')) { var total = d.fatias.reduce(function (s, f) { return s + f.n; }, 0);
                                 new Chart(document.getElementById('graficoSetores'), {
                                     type: 'doughnut',
                                     data: { labels: d.fatias.map(function (f) { return f.nome + ' (' + f.n + ' · ' + Math.round(f.n * 100 / total) + '%)'; }),
                                         datasets: [{ data: d.fatias.map(function (f) { return f.n; }), backgroundColor: d.fatias.map(function (f, i) { return f.nome === 'Outros' ? '#94a3b8' : d.cores[i % d.cores.length]; }), borderWidth: 2, borderColor: '#fff' }] },
                                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+                                }); }
+                                if (pp && document.getElementById('graficoStatus')) new Chart(document.getElementById('graficoStatus'), {
+                                    type: 'doughnut',
+                                    data: { labels: pp.totais.map(function (t) { return t.rot + ' (' + t.n + ')'; }),
+                                        datasets: [{ data: pp.totais.map(function (t) { return t.n; }), backgroundColor: pp.totais.map(function (t) { return t.cor; }), borderWidth: 2, borderColor: '#fff' }] },
+                                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+                                });
+                                if (pp && document.getElementById('graficoCancel')) new Chart(document.getElementById('graficoCancel'), {
+                                    type: 'bar',
+                                    data: { labels: pp.rank.map(function (r) { return r.nome; }), datasets: [{ label: 'Cancelamentos', data: pp.rank.map(function (r) { return r.n; }), backgroundColor: '#ef4444', borderRadius: 5 }] },
+                                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                                        scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } } }
                                 });
                                 window.__graficosProntos = true;
                             } catch (e) { console.error(e); window.__graficosProntos = true; }
@@ -4252,6 +4425,7 @@
 
         function gerarEstruturaPagina(titulo, botoesExtras = '', scriptExtra = '') {
             const resumo = gerarResumoRelatorio();
+            const panorama = gerarPanoramaHtml();
             const turno = esc(thResumoFiltro('turno'));
             const setor = esc(thResumoFiltro('setor'));
             const solicitante = esc(thResumoFiltro('solicitante'));
@@ -4296,13 +4470,15 @@
                                 <button onclick="window.close()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium transition-colors">Fechar Janela</button>
                             </div>
                         </div>
-                        <div class="bg-purple-50 px-6 py-3 border-x border-b border-gray-200 text-sm text-purple-900 flex gap-6 font-medium">
+                        <div class="bg-purple-50 px-6 py-3 border-x border-b border-gray-200 text-sm text-purple-900 flex flex-wrap gap-x-6 gap-y-1 font-medium">
+                            <span><strong>Status:</strong> ${esc(thResumoFiltro('status'))}</span>
                             <span><strong>Turno:</strong> ${turno}</span>
                             <span><strong>Setor:</strong> ${setor}</span>
                             <span><strong>Solicitante:</strong> ${solicitante}</span>
                             <span><strong>Datas:</strong> ${datas}</span>
                         </div>
                         ${resumo.html}
+                        ${panorama.html}
                         <div class="mt-4 shadow-lg rounded-xl overflow-hidden border border-gray-200">
                             ${gerarTabelaRelatorio()}
                         </div>
@@ -4310,7 +4486,7 @@
                             Total de registros exportados: <strong>${getDemandasConcluidas().length}</strong>
                         </div>
                     </div>
-                    ${thScriptGraficos(resumo.dados)}
+                    ${thScriptGraficos(resumo.dados, panorama.dados)}
                     ${scriptExtra}
                 </body>
                 </html>
@@ -4320,20 +4496,20 @@
         function gerarRelatorioHTML() {
             const janela = window.open('', '_blank');
             const botaoImprimir = '<button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-sm">Imprimir Relatório</button>';
-            janela.document.write(gerarEstruturaPagina('Relatório de Demandas Concluídas', botaoImprimir));
+            janela.document.write(gerarEstruturaPagina(thTituloRelatorio(), botaoImprimir));
             janela.document.close();
         }
 
         function gerarRelatorioPDF() {
             const janela = window.open('', '_blank');
-            janela.document.write(gerarEstruturaPagina('Relatório de Demandas Concluídas (Pronto para PDF)'));
+            janela.document.write(gerarEstruturaPagina(thTituloRelatorio() + ' (Pronto para PDF)'));
             janela.document.close();
             // espera os gráficos serem desenhados (até ~8 s) antes de abrir a impressão
             let tentativas = 0;
             const aguardar = setInterval(() => {
                 tentativas++;
                 let pronto = false;
-                try { pronto = janela.__graficosProntos === true || !janela.document.getElementById('graficoMensal'); } catch (e) { pronto = true; }
+                try { pronto = janela.__graficosProntos === true || !janela.document.querySelector('canvas'); } catch (e) { pronto = true; }
                 if (pronto || tentativas > 40) { clearInterval(aguardar); setTimeout(() => { try { janela.print(); } catch (e) {} }, 300); }
             }, 200);
         }
@@ -4347,14 +4523,16 @@
             const lista = getDemandasConcluidas();
             const p = {
                 titulo: 'TRANSPORTE & DEMANDAS - SEMCAS',
-                subtitulo: 'Relatório de Demandas Concluídas',
+                subtitulo: thTituloRelatorio(),
                 geradoEm: new Date().toLocaleString('pt-BR'),
                 filtros: [
-                    ['Turno', thResumoFiltro('turno')], ['Setor', thResumoFiltro('setor')],
+                    ['Status', thResumoFiltro('status')], ['Turno', thResumoFiltro('turno')], ['Setor', thResumoFiltro('setor')],
                     ['Solicitante', thResumoFiltro('solicitante')], ['Datas', thResumoFiltro('datas')]
                 ],
                 total: lista.length,
-                linhas: lista.map(d => [d.dataDemanda || '', d.horario || '', d.solicitante || '', d.setor || '', d.partida || '', d.destino || '',
+                coresStatus: Object.fromEntries(thStatusLista().map(x => [thStatusRotulo(x.valor), thStatusCor(x.valor).replace('#', '').toUpperCase()])),
+                panorama: (() => { const pn = thCalcularPanorama(); return { total: pn.total, totais: pn.totais, setores: pn.setores, ranking: pn.ranking, totalCanc: pn.totalCanc }; })(),
+                linhas: lista.map(d => [thStatusRotulo(d.status), d.dataDemanda || '', d.horario || '', d.solicitante || '', d.setor || '', d.partida || '', d.destino || '',
                     d.nomeMotorista || '', d.placaVeiculo || '', d.numeroSei || '', d.cadastradoPor || '', d.concluidoPor || ''])
             };
             if (lista.length) {
@@ -4362,7 +4540,7 @@
                 const t = thTextoResumo(r);
                 const turnoNome = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }[r.turnoTop[0]];
                 p.cards = [
-                    { rot: 'TOTAL DE DEMANDAS', val: String(r.total), sub: 'concluídas no recorte filtrado', cor: '7C3AED' },
+                    { rot: 'TOTAL DE DEMANDAS', val: String(r.total), sub: thResumoFiltro('status') + ' no recorte', cor: '7C3AED' },
                     { rot: 'SETOR MAIS ATENDIDO', val: r.porSetor[0].nome, sub: r.porSetor[0].n + ' demanda(s) · ' + thPct(r.porSetor[0].n, r.total), cor: '0EA5E9' },
                     { rot: 'MÊS DE MAIOR VOLUME', val: thMesRotulo(r.mesPico.chave), sub: r.mesPico.n + ' demanda(s)', cor: '14B8A6' },
                     { rot: 'TURNO PREDOMINANTE', val: turnoNome, sub: thPct(r.turnoTop[1], r.total) + ' das demandas', cor: 'F59E0B' }
@@ -4562,7 +4740,7 @@
                 bloco('RESUMO QUALITATIVO', p.qual);
             } else {
                 wsR.mergeCells(linha, 1, linha, 12);
-                const c = wsR.getCell(linha, 1); c.value = 'Nenhuma demanda concluída encontrada com os filtros atuais.';
+                const c = wsR.getCell(linha, 1); c.value = 'Nenhuma demanda encontrada com os filtros atuais.';
                 c.font = { name: 'Calibri', size: 12, italic: true, color: { argb: COR.cinza } }; c.alignment = { horizontal: 'center' };
                 linha += 2;
             }
@@ -4570,8 +4748,128 @@
             const rod = wsR.getCell(linha, 1); rod.value = 'Gerado por TransportHub · SEMCAS - Sistema de Demandas';
             rod.font = { name: 'Calibri', size: 9, italic: true, color: { argb: COR.cinza } }; rod.alignment = { horizontal: 'right' };
 
+            // ---------- Planilha: Status por Setor ----------
+            if (p.panorama && p.panorama.total > 0) {
+                const pn = p.panorama;
+                const wsS = wb.addWorksheet('Status por Setor', {
+                    properties: { tabColor: { argb: 'FFEF4444' } }, views: [{ showGridLines: false }],
+                    pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } }
+                });
+                for (let c = 1; c <= 12; c++) wsS.getColumn(c).width = 13;
+                cabecalho(wsS, 12, 4);
+                let ln = 6;
+                const secaoS = (l, c1, c2, texto, cor) => {
+                    wsS.mergeCells(l, c1, l, c2);
+                    const c = wsS.getCell(l, c1); c.value = texto;
+                    c.font = { name: 'Calibri', size: 12, bold: true, color: { argb: COR.branco } };
+                    c.alignment = { vertical: 'middle', indent: 1 };
+                    for (let x = c1; x <= c2; x++) wsS.getCell(l, x).fill = preencher(cor || COR.escuro);
+                    wsS.getRow(l).height = 22;
+                };
+                secaoS(ln, 1, 12, 'PANORAMA POR STATUS E SETOR  (todos os status; demais filtros aplicados)'); ln += 2;
+                // cards por status (até 4)
+                pn.totais.slice(0, 4).forEach((t, i) => {
+                    const c0 = i * 3 + 1;
+                    [0, 1, 2].forEach(k => wsS.mergeCells(ln + k, c0, ln + k, c0 + 2));
+                    const lab = wsS.getCell(ln, c0); lab.value = t.rot.toUpperCase(); lab.font = { name: 'Calibri', size: 9, bold: true, color: { argb: COR.cinza } }; lab.alignment = { vertical: 'bottom', indent: 1 };
+                    const val = wsS.getCell(ln + 1, c0); val.value = t.n; val.font = { name: 'Calibri', size: 26, bold: true, color: { argb: 'FF111827' } }; val.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                    const sub = wsS.getCell(ln + 2, c0); sub.value = (pn.total ? (t.n * 100 / pn.total).toFixed(1).replace('.', ',') : '0') + '% do recorte'; sub.font = { name: 'Calibri', size: 9, color: { argb: COR.cinza } }; sub.alignment = { vertical: 'top', indent: 1 };
+                    for (let k = 0; k < 3; k++) for (let c = c0; c < c0 + 3; c++) {
+                        const cel = wsS.getCell(ln + k, c); cel.fill = preencher(COR.branco);
+                        cel.border = { top: k === 0 ? bordaFina : undefined, bottom: k === 2 ? bordaFina : undefined, right: c === c0 + 2 ? bordaFina : undefined, left: c === c0 ? { style: 'thick', color: { argb: 'FF' + t.cor.replace('#', '') } } : undefined };
+                    }
+                });
+                wsS.getRow(ln).height = 20; wsS.getRow(ln + 1).height = 38; wsS.getRow(ln + 2).height = 20;
+                ln += 4;
+                secaoS(ln, 1, 5, 'DISTRIBUIÇÃO POR STATUS'); secaoS(ln, 6, 12, 'RANKING DE CANCELAMENTOS POR SETOR', 'FF991B1B');
+                // gráficos
+                const fundoS = { id: 'fundoBranco', beforeDraw(ch) { const x = ch.ctx; x.save(); x.globalCompositeOperation = 'destination-over'; x.fillStyle = '#ffffff'; x.fillRect(0, 0, ch.width, ch.height); x.restore(); } };
+                const rotS = { id: 'rotS', afterDatasetsDraw(ch) { const x = ch.ctx; x.save(); x.fillStyle = '#1f2937'; x.font = 'bold 22px Calibri, Arial'; x.textBaseline = 'middle';
+                    ch.getDatasetMeta(0).data.forEach((b, i) => { const v = ch.data.datasets[0].data[i]; if (v) x.fillText(String(v), b.x + 10, b.y); }); x.restore(); } };
+                const desenharS = (w, h, config) => {
+                    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                    Chart.defaults.animation = false; Chart.defaults.font.size = 22; Chart.defaults.font.family = 'Calibri, Arial, sans-serif';
+                    config.options = Object.assign({ responsive: false, devicePixelRatio: 1 }, config.options);
+                    config.plugins = (config.plugins || []).concat([fundoS]);
+                    const ch = new Chart(cv, config); const url = cv.toDataURL('image/png'); ch.destroy(); return url.replace(/^data:image\/png;base64,/, '');
+                };
+                const imgSt = desenharS(940, 600, {
+                    type: 'doughnut',
+                    data: { labels: pn.totais.map(t => t.rot + ' (' + t.n + ')'), datasets: [{ data: pn.totais.map(t => t.n), backgroundColor: pn.totais.map(t => t.cor), borderWidth: 4, borderColor: '#ffffff' }] },
+                    options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 22, font: { size: 20 } } } } }
+                });
+                const rk10 = pn.ranking.slice(0, 10);
+                const idSt = wb.addImage({ base64: imgSt, extension: 'png' });
+                for (let i = 1; i <= 15; i++) wsS.getRow(ln + i).height = 20;
+                wsS.addImage(idSt, { tl: { col: 0.05, row: ln + 0.1 }, ext: { width: 400, height: 255 } });
+                if (rk10.length) {
+                    const imgCa = desenharS(1280, 600, {
+                        type: 'bar',
+                        data: { labels: rk10.map(r => r.nome), datasets: [{ data: rk10.map(r => r.cancTotal), backgroundColor: '#ef4444', borderRadius: 6, maxBarThickness: 46 }] },
+                        options: { indexAxis: 'y', layout: { padding: { right: 50 } }, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#e5e7eb' } }, y: { grid: { display: false } } } },
+                        plugins: [rotS]
+                    });
+                    wsS.addImage(wb.addImage({ base64: imgCa, extension: 'png' }), { tl: { col: 5.05, row: ln + 0.1 }, ext: { width: 600, height: 295 } });
+                } else {
+                    wsS.mergeCells(ln + 6, 6, ln + 6, 12);
+                    const nc = wsS.getCell(ln + 6, 6); nc.value = 'Nenhum cancelamento no recorte filtrado.'; nc.font = { name: 'Calibri', size: 12, italic: true, color: { argb: COR.cinza } }; nc.alignment = { horizontal: 'center' };
+                }
+                ln += 17;
+                // matriz status x setor
+                secaoS(ln, 1, 12, 'STATUS POR SETOR'); ln++;
+                const cabS = (l, c, txt, al) => { const x = wsS.getCell(l, c); x.value = txt; x.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.medio } }; x.fill = preencher(COR.claro); x.alignment = { horizontal: al || 'center', vertical: 'middle', wrapText: true, indent: al === 'left' ? 1 : 0 }; x.border = todasBordas; };
+                wsS.mergeCells(ln, 1, ln, 4); cabS(ln, 1, 'Setor', 'left'); [2, 3, 4].forEach(c => { wsS.getCell(ln, c).fill = preencher(COR.claro); wsS.getCell(ln, c).border = todasBordas; });
+                ['Pendente', 'Concluída', 'Cancelada', 'Canc. pelo solicitante', 'Total', 'Total cancel.', '% cancel.', 'Outros'].forEach((t, i) => cabS(ln, 5 + i, t));
+                wsS.getRow(ln).height = 30;
+                const m0 = ln + 1;
+                pn.setores.forEach((r, i) => {
+                    const l = m0 + i;
+                    wsS.mergeCells(l, 1, l, 4);
+                    const nome = wsS.getCell(l, 1); nome.value = r.nome; nome.font = { name: 'Calibri', size: 10, bold: true }; nome.alignment = { vertical: 'middle', indent: 1 };
+                    [r.pend, r.conc, r.canc, r.cancSol, r.total, r.cancTotal, r.pct, r.outros].forEach((v, k) => {
+                        const x = wsS.getCell(l, 5 + k); x.value = v; x.alignment = { horizontal: 'center', vertical: 'middle' };
+                        x.font = { name: 'Calibri', size: 10, bold: k === 4 || k === 5, color: (k === 5 || k === 6) && r.cancTotal ? { argb: 'FFDC2626' } : undefined };
+                        if (k === 6) x.numFmt = '0.0%';
+                    });
+                    for (let c = 1; c <= 12; c++) { const x = wsS.getCell(l, c); x.border = todasBordas; if (i % 2) x.fill = preencher(COR.zebra); }
+                });
+                const mFim = m0 + pn.setores.length - 1;
+                try {
+                    wsS.addConditionalFormatting({ ref: 'J' + m0 + ':J' + mFim, rules: [{ type: 'dataBar', cfvo: [{ type: 'num', value: 0 }, { type: 'max' }], color: { argb: 'FFFCA5A5' }, gradient: false, priority: 1 }] });
+                    wsS.addConditionalFormatting({ ref: 'I' + m0 + ':I' + mFim, rules: [{ type: 'dataBar', cfvo: [{ type: 'num', value: 0 }, { type: 'max' }], color: { argb: 'FFA78BFA' }, gradient: false, priority: 2 }] });
+                } catch (e) { console.warn('Barras de dados indisponíveis', e); }
+                ln = mFim + 2;
+                // ranking de cancelamentos
+                secaoS(ln, 1, 12, 'RANKING: SETORES QUE MAIS CANCELAM DEMANDAS', 'FF991B1B'); ln++;
+                wsS.mergeCells(ln, 2, ln, 6); cabS(ln, 1, 'Pos.'); cabS(ln, 2, 'Setor', 'left'); [3, 4, 5, 6].forEach(c => { wsS.getCell(ln, c).fill = preencher(COR.claro); wsS.getCell(ln, c).border = todasBordas; });
+                wsS.mergeCells(ln, 7, ln, 8); cabS(ln, 7, 'Cancelamentos'); wsS.getCell(ln, 8).fill = preencher(COR.claro); wsS.getCell(ln, 8).border = todasBordas;
+                wsS.mergeCells(ln, 9, ln, 10); cabS(ln, 9, '% do total de cancel.'); wsS.getCell(ln, 10).fill = preencher(COR.claro); wsS.getCell(ln, 10).border = todasBordas;
+                wsS.mergeCells(ln, 11, ln, 12); cabS(ln, 11, '% dos pedidos do setor'); wsS.getCell(ln, 12).fill = preencher(COR.claro); wsS.getCell(ln, 12).border = todasBordas;
+                wsS.getRow(ln).height = 30;
+                const r0 = ln + 1;
+                if (!pn.ranking.length) {
+                    wsS.mergeCells(r0, 1, r0, 12); const x = wsS.getCell(r0, 1); x.value = 'Nenhum cancelamento no recorte filtrado.'; x.font = { name: 'Calibri', size: 11, italic: true, color: { argb: COR.cinza } }; x.alignment = { horizontal: 'center' };
+                    ln = r0 + 2;
+                } else {
+                    pn.ranking.forEach((r, i) => {
+                        const l = r0 + i;
+                        wsS.mergeCells(l, 2, l, 6); wsS.mergeCells(l, 7, l, 8); wsS.mergeCells(l, 9, l, 10); wsS.mergeCells(l, 11, l, 12);
+                        [[1, (i + 1) + 'º', 'center'], [2, r.nome, 'left'], [7, r.cancTotal, 'center'], [9, pn.totalCanc ? r.cancTotal / pn.totalCanc : 0, 'center'], [11, r.pct, 'center']].forEach(([c, v, al]) => {
+                            const x = wsS.getCell(l, c); x.value = v; x.alignment = { horizontal: al, vertical: 'middle', indent: al === 'left' ? 1 : 0 };
+                            x.font = { name: 'Calibri', size: 10, bold: c === 7 || (c === 1 && i === 0), color: i === 0 && c !== 2 ? { argb: 'FFDC2626' } : undefined };
+                            if (c === 9 || c === 11) x.numFmt = '0.0%';
+                        });
+                        for (let c = 1; c <= 12; c++) { const x = wsS.getCell(l, c); x.border = todasBordas; if (i % 2) x.fill = preencher(COR.zebra); }
+                    });
+                    try { wsS.addConditionalFormatting({ ref: 'G' + r0 + ':G' + (r0 + pn.ranking.length - 1), rules: [{ type: 'dataBar', cfvo: [{ type: 'num', value: 0 }, { type: 'max' }], color: { argb: 'FFFCA5A5' }, gradient: false, priority: 3 }] }); } catch (e) {}
+                    ln = r0 + pn.ranking.length + 1;
+                }
+                wsS.mergeCells(ln, 1, ln, 12);
+                const rod2 = wsS.getCell(ln, 1); rod2.value = 'Gerado por TransportHub · SEMCAS - Sistema de Demandas'; rod2.font = { name: 'Calibri', size: 9, italic: true, color: { argb: COR.cinza } }; rod2.alignment = { horizontal: 'right' };
+            }
+
             // ---------- Planilha 2: Demandas (tabela) ----------
-            const colunas = [['Data', 12], ['Hora', 8], ['Solicitante', 26], ['Setor', 20], ['Partida', 26], ['Destino', 30], ['Motorista', 22], ['Placa', 12], ['Nº SEI', 20], ['Cadastrado por', 16], ['Baixa por', 16]];
+            const colunas = [['Status', 24], ['Data', 12], ['Hora', 8], ['Solicitante', 26], ['Setor', 20], ['Partida', 26], ['Destino', 30], ['Motorista', 22], ['Placa', 12], ['Nº SEI', 20], ['Cadastrado por', 16], ['Baixa por', 16]];
             const wsT = wb.addWorksheet('Demandas', {
                 properties: { tabColor: { argb: COR.escuro } }, views: [{ state: 'frozen', ySplit: 5, showGridLines: false }],
                 pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: '5:5', margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } }
@@ -4583,17 +4881,17 @@
                 const x = hr.getCell(i + 1); x.value = n.toUpperCase();
                 x.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.branco } };
                 x.fill = preencher(COR.escuro);
-                x.alignment = { vertical: 'middle', horizontal: i < 2 || i === 7 ? 'center' : 'left', indent: i < 2 || i === 7 ? 0 : 1 };
+                x.alignment = { vertical: 'middle', horizontal: (i >= 1 && i < 3) || i === 8 ? 'center' : 'left', indent: (i >= 1 && i < 3) || i === 8 ? 0 : 1 };
                 x.border = { bottom: { style: 'medium', color: { argb: COR.roxo } } };
             });
             p.linhas.forEach((l, i) => {
                 const row = wsT.getRow(6 + i);
                 l.forEach((v, c) => {
                     const x = row.getCell(c + 1);
-                    if (c === 0 && /^\d{4}-\d{2}-\d{2}$/.test(v)) { const [a, m, d] = v.split('-').map(Number); x.value = new Date(Date.UTC(a, m - 1, d)); x.numFmt = 'dd/mm/yyyy'; }
+                    if (c === 1 && /^\d{4}-\d{2}-\d{2}$/.test(v)) { const [a, m, d] = v.split('-').map(Number); x.value = new Date(Date.UTC(a, m - 1, d)); x.numFmt = 'dd/mm/yyyy'; }
                     else x.value = v === '' ? '-' : v;
-                    x.font = { name: 'Calibri', size: 10, bold: c === 1 };
-                    x.alignment = { vertical: 'middle', horizontal: c < 2 || c === 7 ? 'center' : 'left', indent: c < 2 || c === 7 ? 0 : 1, wrapText: c === 4 || c === 5 };
+                    x.font = { name: 'Calibri', size: 10, bold: c === 2 || c === 0, color: c === 0 ? { argb: 'FF' + ((p.coresStatus || {})[v] || '374151') } : undefined };
+                    x.alignment = { vertical: 'middle', horizontal: (c >= 1 && c < 3) || c === 8 ? 'center' : 'left', indent: (c >= 1 && c < 3) || c === 8 ? 0 : 1, wrapText: c === 5 || c === 6 };
                     x.border = todasBordas;
                     if (i % 2) x.fill = preencher(COR.zebra);
                 });
@@ -5467,6 +5765,371 @@ function renderBancoFolgas() {
             <td class="px-3 py-3 whitespace-nowrap">${acoes}</td>
         </tr>`;
     }).join('');
+}
+
+// ================= RELATÓRIOS DE FOLGAS (HTML / PDF / Excel) =================
+const TH_MESES_LONGOS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const TH_SIGLA_FOLGA = { 'Folga compensatória': 'C', 'Banco de horas': 'B', 'Abono': 'A', 'Outra': 'O' };
+const TH_REL_TITULOS = { programacao: 'Programação de Folgas', saldo: 'Saldo do Banco de Folgas', extrato: 'Extrato do Banco de Folgas' };
+
+function relFolgasAbrir() {
+    folgasPreencherSugestoes();
+    const nomes = new Map();
+    thNomesBanco().forEach(n => nomes.set(thChaveNome(n), n));
+    folgas.forEach(f => { const k = thChaveNome(f.servidor); if (k && !nomes.has(k)) nomes.set(k, String(f.servidor).trim()); });
+    const sel = document.getElementById('relFolgasMotorista');
+    sel.innerHTML = '<option value="">Todos os motoristas</option>' + [...nomes.values()].sort((a, b) => a.localeCompare(b, 'pt-BR')).map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    document.getElementById('relFolgasTipoFolga').innerHTML = '<option value="">Todos os tipos</option>' + Object.keys(TIPOS_FOLGA_COR).map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+    document.getElementById('relFolgasTipo').value = folgasSubabaAtual === 'programacao' ? 'programacao' : 'saldo';
+    relFolgasAtalho('mes');
+    relFolgasTipoMudou();
+    document.getElementById('modalRelFolgas').classList.remove('hidden');
+}
+function relFolgasFechar() { document.getElementById('modalRelFolgas').classList.add('hidden'); }
+function relFolgasTipoMudou() {
+    const t = document.getElementById('relFolgasTipo').value;
+    document.getElementById('relFolgasBlocoPeriodo').classList.toggle('hidden', t === 'saldo');
+    document.getElementById('relFolgasBlocoSaldoInfo').classList.toggle('hidden', t !== 'saldo');
+    document.getElementById('relFolgasBlocoTipoFolga').classList.toggle('hidden', t !== 'programacao');
+}
+function relFolgasAtalho(k) {
+    const h = new Date(), a = h.getFullYear(), m = h.getMonth();
+    const ult = (y, mm) => new Date(y, mm + 1, 0).getDate();
+    let de = '', ate = '';
+    if (k === 'mes') { de = dataLocalStr(new Date(a, m, 1)); ate = dataLocalStr(new Date(a, m, ult(a, m))); }
+    else if (k === 'anterior') { const d = new Date(a, m - 1, 1); de = dataLocalStr(d); ate = dataLocalStr(new Date(d.getFullYear(), d.getMonth(), ult(d.getFullYear(), d.getMonth()))); }
+    else if (k === 'ano') { de = a + '-01-01'; ate = a + '-12-31'; }
+    document.getElementById('relFolgasDe').value = de;
+    document.getElementById('relFolgasAte').value = ate;
+}
+function relFolgasCfg() {
+    return {
+        tipo: document.getElementById('relFolgasTipo').value,
+        de: document.getElementById('relFolgasDe').value,
+        ate: document.getElementById('relFolgasAte').value,
+        motorista: document.getElementById('relFolgasMotorista').value,
+        tipoFolga: document.getElementById('relFolgasTipoFolga').value
+    };
+}
+
+// Monta os dados (texto/números) do relatório escolhido
+function thRelFolgasDados(cfg) {
+    const hoje = dataLocalStr(new Date());
+    const chaveMot = thChaveNome(cfg.motorista);
+    const periodoTxt = cfg.tipo === 'saldo' ? 'Posição em ' + formatarDataBrasil(hoje)
+        : (cfg.de || cfg.ate) ? (cfg.de ? formatarDataBrasil(cfg.de) : 'início') + ' a ' + (cfg.ate ? formatarDataBrasil(cfg.ate) : 'hoje') : 'Todo o histórico';
+    const rel = {
+        tipo: cfg.tipo, titulo: TH_REL_TITULOS[cfg.tipo] || 'Folgas', geradoEm: new Date().toLocaleString('pt-BR'),
+        filtros: [['Período', periodoTxt], ['Motorista', cfg.motorista || 'Todos']],
+        cards: [], tabelas: [], grades: [], vazio: false
+    };
+    const noPeriodo = (ini, fim) => (!cfg.de || fim >= cfg.de) && (!cfg.ate || ini <= cfg.ate);
+
+    if (cfg.tipo === 'programacao') {
+        rel.filtros.push(['Tipo de folga', cfg.tipoFolga || 'Todos']);
+        const lista = folgas.filter(f => f.dataInicio && f.dataFim && noPeriodo(f.dataInicio, f.dataFim)
+            && (!chaveMot || thChaveNome(f.servidor) === chaveMot) && (!cfg.tipoFolga || f.tipo === cfg.tipoFolga))
+            .sort((a, b) => a.dataInicio.localeCompare(b.dataInicio) || String(a.servidor).localeCompare(String(b.servidor), 'pt-BR'));
+        const sit = f => f.dataFim < hoje ? 'Gozada' : (f.dataInicio <= hoje ? 'Em andamento' : 'Agendada');
+        const diasReg = f => diasEntre(f.dataInicio, f.dataFim);
+        const totalDias = lista.reduce((s, f) => s + diasReg(f), 0);
+        const motSet = new Set(lista.map(f => thChaveNome(f.servidor)));
+        const diasBanco = lista.filter(f => f.debitaBanco === true).reduce((s, f) => s + diasReg(f), 0);
+        rel.cards = [
+            { rot: 'REGISTROS DE FOLGA', val: String(lista.length), sub: 'no período filtrado', cor: '14B8A6' },
+            { rot: 'DIAS DE FOLGA', val: thNum(totalDias), sub: 'somando todos os registros', cor: '0EA5E9' },
+            { rot: 'MOTORISTAS', val: String(motSet.size), sub: 'com folga no período', cor: '7C3AED' },
+            { rot: 'DESCONTAM DO BANCO', val: thNum(diasBanco), sub: 'dias com débito no banco', cor: 'F59E0B' }
+        ];
+        rel.vazio = !lista.length;
+        rel.tabelas.push({
+            titulo: 'Folgas programadas e gozadas',
+            colunas: [{ n: 'Motorista', w: 28 }, { n: 'Lotação', w: 22 }, { n: 'Tipo', w: 20 }, { n: 'Início', w: 12, t: 'data', al: 'center' }, { n: 'Fim', w: 12, t: 'data', al: 'center' },
+                { n: 'Dias', w: 8, t: 'num', al: 'center' }, { n: 'Desconta do banco', w: 12, al: 'center' }, { n: 'Situação', w: 15, al: 'center' }, { n: 'Observação', w: 40 }],
+            linhas: lista.map(f => [f.servidor || '', f.lotacao || '', f.tipo || '', f.dataInicio, f.dataFim, diasReg(f), f.debitaBanco === true ? 'Sim' : 'Não', sit(f), f.observacao || '']),
+            principal: true
+        });
+        // dias por motorista
+        const pm = new Map();
+        lista.forEach(f => { const k = thChaveNome(f.servidor); const r = pm.get(k) || { nome: String(f.servidor).trim(), reg: 0, dias: 0, gozadas: 0, agend: 0 };
+            r.reg++; r.dias += diasReg(f); if (f.dataFim < hoje) r.gozadas += diasReg(f); else r.agend += diasReg(f); pm.set(k, r); });
+        const arr = [...pm.values()].sort((a, b) => b.dias - a.dias || a.nome.localeCompare(b.nome, 'pt-BR'));
+        if (arr.length) rel.tabelas.push({
+            titulo: 'Dias de folga por motorista',
+            colunas: [{ n: 'Pos.', w: 8, al: 'center' }, { n: 'Motorista', w: 28 }, { n: 'Registros', w: 12, t: 'num', al: 'center' }, { n: 'Dias de folga', w: 14, t: 'num', al: 'center' }, { n: 'Já gozados / em curso', w: 20, t: 'num', al: 'center' }, { n: 'Agendados', w: 12, t: 'num', al: 'center' }],
+            linhas: arr.map((r, i) => [(i + 1) + 'º', r.nome, r.reg, r.dias, r.gozadas, r.agend])
+        });
+        // grades mensais (máx. 12 meses)
+        if (lista.length) {
+            let ini = cfg.de && cfg.de > lista[0].dataInicio ? cfg.de : lista[0].dataInicio;
+            let fim = lista.reduce((m, f) => f.dataFim > m ? f.dataFim : m, lista[0].dataFim);
+            if (cfg.ate && cfg.ate < fim) fim = cfg.ate;
+            let [a, m] = ini.slice(0, 7).split('-').map(Number); const [af, mf] = fim.slice(0, 7).split('-').map(Number);
+            let n = 0;
+            while ((a < af || (a === af && m <= mf)) && n < 12) {
+                const mesStr = `${a}-${String(m).padStart(2, '0')}`; const nd = new Date(a, m, 0).getDate();
+                const mapaMot = new Map();
+                lista.forEach(f => {
+                    if (f.dataFim < mesStr + '-01' || f.dataInicio > mesStr + '-' + String(nd).padStart(2, '0')) return;
+                    const k = thChaveNome(f.servidor); const r = mapaMot.get(k) || { nome: String(f.servidor).trim(), cels: new Array(nd).fill(null), dias: 0 };
+                    for (let d = 1; d <= nd; d++) { const ds = `${mesStr}-${String(d).padStart(2, '0')}`; if (ds >= f.dataInicio && ds <= f.dataFim) { if (!r.cels[d - 1]) r.dias++; r.cels[d - 1] = { t: TH_SIGLA_FOLGA[f.tipo] || 'O', cor: (TIPOS_FOLGA_COR[f.tipo] || '#64748b') }; } }
+                    mapaMot.set(k, r);
+                });
+                if (mapaMot.size) rel.grades.push({
+                    titulo: TH_MESES_LONGOS[m - 1] + ' de ' + a, nd,
+                    sem: Array.from({ length: nd }, (_, i) => criarDataBrasilia(`${mesStr}-${String(i + 1).padStart(2, '0')}`).getDay()),
+                    linhas: [...mapaMot.values()].sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR'))
+                });
+                m++; if (m > 12) { m = 1; a++; } n++;
+            }
+            rel.legenda = Object.keys(TIPOS_FOLGA_COR).map(t => ({ sigla: TH_SIGLA_FOLGA[t] || 'O', nome: t, cor: TIPOS_FOLGA_COR[t] }));
+        }
+    } else if (cfg.tipo === 'saldo') {
+        const mapa = thCalcularBanco();
+        const lista = [...mapa.values()].filter(r => !chaveMot || r.chave === chaveMot).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        const soma = k => lista.reduce((s, r) => s + r[k], 0);
+        rel.cards = [
+            { rot: 'MOTORISTAS NO BANCO', val: String(lista.length), sub: 'cadastrados', cor: '7C3AED' },
+            { rot: 'CRÉDITOS LÍQUIDOS', val: thNum(soma('creditos') - soma('ajustes')), sub: 'créditos − ajustes (dias)', cor: '14B8A6' },
+            { rot: 'FOLGAS GOZADAS', val: thNum(soma('gozadas')), sub: 'dias descontados', cor: '64748B' },
+            { rot: 'AGENDADAS', val: thNum(soma('agendadas')), sub: 'dias já reservados', cor: '0EA5E9' },
+            { rot: 'SALDO TOTAL', val: thNum(soma('saldo')), sub: 'dias disponíveis', cor: '22C55E' }
+        ];
+        rel.vazio = !lista.length;
+        rel.tabelas.push({
+            titulo: 'Saldo por motorista',
+            colunas: [{ n: 'Motorista', w: 32 }, { n: 'Créditos', w: 13, t: 'num', al: 'center' }, { n: 'Ajustes (−)', w: 13, t: 'num', al: 'center' }, { n: 'Gozadas', w: 13, t: 'num', al: 'center' }, { n: 'Agendadas', w: 13, t: 'num', al: 'center' }, { n: 'Saldo', w: 13, t: 'saldo', al: 'center' }],
+            linhas: lista.map(r => [r.nome, r.creditos, r.ajustes, r.gozadas, r.agendadas, r.saldo]), principal: true,
+            total: ['TOTAL', soma('creditos'), soma('ajustes'), soma('gozadas'), soma('agendadas'), soma('saldo')]
+        });
+    } else {
+        // extrato: todos os movimentos, com saldo acumulado calculado sobre o histórico completo
+        const mov = [];
+        bancoFolgas.forEach(l => mov.push({ data: l.dataReferencia || '', nome: l.motorista, kind: l.tipo === 'debito' ? 'debito' : 'credito', dias: Number(l.dias) || 0, texto: [l.motivo, l.observacao].filter(Boolean).join(' · ') }));
+        folgas.filter(f => f.debitaBanco === true && f.dataInicio).forEach(f => mov.push({ data: f.dataInicio, nome: f.servidor, kind: f.dataInicio <= hoje ? 'gozada' : 'agendada', dias: diasEntre(f.dataInicio, f.dataFim), texto: `${f.tipo} · ${periodoTexto(f.dataInicio, f.dataFim)}${f.observacao ? ' · ' + f.observacao : ''}` }));
+        const nomeTipo = { credito: 'Crédito', debito: 'Ajuste (débito)', gozada: 'Folga gozada', agendada: 'Folga agendada' };
+        const acum = new Map();
+        mov.sort((a, b) => String(a.data).localeCompare(String(b.data)));
+        mov.forEach(m => { const k = thChaveNome(m.nome); const v = (acum.get(k) || 0) + (m.kind === 'credito' ? m.dias : -m.dias); acum.set(k, v); m.saldoApos = v; m.sinal = m.kind === 'credito' ? 1 : -1; });
+        const lista = mov.filter(m => (!chaveMot || thChaveNome(m.nome) === chaveMot) && (!cfg.de || (m.data && m.data >= cfg.de)) && (!cfg.ate || (m.data && m.data <= cfg.ate)));
+        const soma = (fn) => lista.filter(fn).reduce((s, m) => s + m.dias, 0);
+        const cred = soma(m => m.kind === 'credito'), deb = soma(m => m.kind === 'debito'), goz = soma(m => m.kind === 'gozada'), ag = soma(m => m.kind === 'agendada');
+        rel.cards = [
+            { rot: 'LANÇAMENTOS', val: String(lista.length), sub: 'no período', cor: '7C3AED' },
+            { rot: 'CRÉDITOS', val: '+' + thNum(cred), sub: 'dias creditados', cor: '14B8A6' },
+            { rot: 'AJUSTES / GOZADAS', val: '−' + thNum(deb + goz), sub: `ajustes ${thNum(deb)} · gozadas ${thNum(goz)}`, cor: 'EF4444' },
+            { rot: 'AGENDADAS', val: '−' + thNum(ag), sub: 'dias reservados', cor: '0EA5E9' },
+            { rot: 'VARIAÇÃO NO PERÍODO', val: thNum(cred - deb - goz - ag), sub: 'créditos − débitos', cor: '22C55E' }
+        ];
+        rel.vazio = !lista.length;
+        const pm = new Map();
+        lista.forEach(m => { const k = thChaveNome(m.nome); const r = pm.get(k) || { nome: String(m.nome).trim(), c: 0, d: 0, g: 0, a: 0 };
+            if (m.kind === 'credito') r.c += m.dias; else if (m.kind === 'debito') r.d += m.dias; else if (m.kind === 'gozada') r.g += m.dias; else r.a += m.dias; pm.set(k, r); });
+        const arr = [...pm.values()].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        const saldoAtual = thCalcularBanco();
+        if (arr.length) rel.tabelas.push({
+            titulo: 'Resumo por motorista (período)',
+            colunas: [{ n: 'Motorista', w: 32 }, { n: 'Créditos', w: 13, t: 'num', al: 'center' }, { n: 'Ajustes (−)', w: 13, t: 'num', al: 'center' }, { n: 'Gozadas', w: 13, t: 'num', al: 'center' }, { n: 'Agendadas', w: 13, t: 'num', al: 'center' }, { n: 'Saldo atual', w: 13, t: 'saldo', al: 'center' }],
+            linhas: arr.map(r => { const s = saldoAtual.get(thChaveNome(r.nome)); return [r.nome, r.c, r.d, r.g, r.a, s ? s.saldo : 0]; })
+        });
+        rel.tabelas.push({
+            titulo: 'Movimentações',
+            colunas: [{ n: 'Data', w: 12, t: 'data', al: 'center' }, { n: 'Motorista', w: 28 }, { n: 'Tipo', w: 18 }, { n: 'Dias', w: 10, t: 'sinal', al: 'center' }, { n: 'Descrição', w: 50 }, { n: 'Saldo após', w: 12, t: 'saldo', al: 'center' }],
+            linhas: lista.slice().reverse().map(m => [m.data || '', m.nome || '', nomeTipo[m.kind], m.sinal * m.dias, m.texto || '', m.saldoApos]), principal: true
+        });
+    }
+    return rel;
+}
+
+// ---------- página HTML (também usada para o PDF) ----------
+function thPaginaRelFolgas(rel, botoes, scriptExtra) {
+    const fmt = (c, v) => {
+        if (v === '' || v == null) return '-';
+        if (c.t === 'data') return /^\d{4}-\d{2}-\d{2}$/.test(v) ? esc(formatarDataBrasil(v)) : esc(v);
+        if (c.t === 'num') return esc(thNum(v));
+        if (c.t === 'sinal') return `<b style="color:${v < 0 ? '#dc2626' : '#047857'}">${v < 0 ? '−' : '+'}${esc(thNum(Math.abs(v)))}</b>`;
+        if (c.t === 'saldo') return `<b style="color:${v < 0 ? '#dc2626' : v === 0 ? '#6b7280' : '#047857'}">${esc(thNum(v))}</b>`;
+        if (c.n === 'Situação') { const cor = { 'Gozada': '#475569', 'Em andamento': '#059669', 'Agendada': '#0284c7' }[v] || '#475569'; return `<span style="padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;color:${cor};background:${cor}1f;border:1px solid ${cor}55">${esc(v)}</span>`; }
+        return esc(v);
+    };
+    const tabela = (t) => `
+        <div class="bloco"><h3>${esc(t.titulo)}</h3>
+        <table><thead><tr>${t.colunas.map(c => `<th style="text-align:${c.al || 'left'}">${esc(c.n)}</th>`).join('')}</tr></thead><tbody>
+        ${t.linhas.length ? t.linhas.map(l => `<tr>${l.map((v, i) => `<td style="text-align:${t.colunas[i].al || 'left'}">${fmt(t.colunas[i], v)}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${t.colunas.length}" style="text-align:center;color:#6b7280;padding:16px">Nenhum registro encontrado com os filtros atuais.</td></tr>`}
+        ${t.total ? `<tr class="tot">${t.total.map((v, i) => `<td style="text-align:${t.colunas[i].al || 'left'}">${i === 0 ? esc(v) : fmt(t.colunas[i], v)}</td>`).join('')}</tr>` : ''}
+        </tbody></table></div>`;
+    const grade = (g) => `
+        <div class="bloco"><h3>Grade de ${esc(g.titulo)}</h3><div style="overflow-x:auto"><table class="grade"><thead><tr><th style="text-align:left;min-width:150px">Motorista</th>${Array.from({ length: g.nd }, (_, i) => `<th style="background:${[0, 6].includes(g.sem[i]) ? '#4b5563' : ''}">${i + 1}<br><span style="font-weight:400;font-size:9px">${'DSTQQSS'[g.sem[i]]}</span></th>`).join('')}<th>Dias</th></tr></thead><tbody>
+        ${g.linhas.map(r => `<tr><td style="font-weight:600">${esc(r.nome)}</td>${r.cels.map((c, i) => c ? `<td style="background:${c.cor};color:#fff;font-weight:700;text-align:center">${c.t}</td>` : `<td style="text-align:center;${[0, 6].includes(g.sem[i]) ? 'background:#f3f4f6' : ''}"></td>`).join('')}<td style="text-align:center;font-weight:700">${r.dias}</td></tr>`).join('')}
+        </tbody></table></div></div>`;
+    const legenda = rel.legenda ? `<div class="bloco" style="font-size:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center"><b>Legenda:</b>${rel.legenda.map(l => `<span><span style="display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:4px;background:${l.cor};color:#fff;font-weight:700;margin-right:4px">${l.sigla}</span>${esc(l.nome)}</span>`).join('')}</div>` : '';
+    return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(rel.titulo)} - SEMCAS</title>
+    <style>
+        *{box-sizing:border-box} body{margin:0;background:#f3f4f6;padding:2rem;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#111827}
+        .container{max-width:1200px;margin:0 auto}
+        .cab{background:#fff;padding:22px 24px;border-radius:12px 12px 0 0;border-bottom:4px solid #0d9488;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+        .cab h1{margin:0;font-size:22px} .cab h2{margin:2px 0;font-size:17px;color:#4b5563;font-weight:600} .cab p{margin:4px 0 0;font-size:13px;color:#6b7280}
+        .btn{padding:9px 16px;border:0;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;font-size:14px;margin-left:8px}
+        .filtros{background:#f0fdfa;border:1px solid #e5e7eb;border-top:0;padding:10px 24px;font-size:13px;color:#115e59;display:flex;gap:24px;flex-wrap:wrap;font-weight:500}
+        .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:16px}
+        .card{background:#fff;border:1px solid #e5e7eb;border-left:5px solid #14b8a6;border-radius:12px;padding:14px 16px;break-inside:avoid}
+        .card p{margin:0} .card .r{font-size:11px;font-weight:700;letter-spacing:.05em;color:#6b7280} .card .v{font-size:28px;font-weight:800;margin-top:4px} .card .s{font-size:12px;color:#6b7280;margin-top:2px}
+        .bloco{background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-top:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:0}
+        .bloco h3{margin:0;padding:12px 16px;font-size:14px;background:#f9fafb;border-bottom:1px solid #e5e7eb}
+        table{width:100%;border-collapse:collapse;font-size:13px} th{background:linear-gradient(135deg,#1f2937,#374151 50%,#6b7280);color:#fff;padding:10px 8px;text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+        td{padding:8px;border-top:1px solid #f3f4f6} tr.tot td{background:#f0fdfa;font-weight:800;border-top:2px solid #14b8a6}
+        table.grade th,table.grade td{padding:4px 2px;font-size:11px;border:1px solid #e5e7eb;min-width:24px} table.grade th{border-color:#374151}
+        .vazio{background:#fff;border:1px dashed #9ca3af;border-radius:12px;padding:30px;text-align:center;color:#6b7280;margin-top:16px}
+        .rodape{text-align:center;font-size:12px;color:#6b7280;margin-top:16px}
+        @media print{ .no-print{display:none!important} body{background:#fff;padding:0} *{-webkit-print-color-adjust:exact;print-color-adjust:exact} tr{page-break-inside:avoid} .bloco,.card{box-shadow:none} @page{size:A4 landscape;margin:10mm} }
+    </style></head><body><div class="container">
+        <div class="cab"><div><h1>TRANSPORTE & DEMANDAS - SEMCAS</h1><h2>${esc(rel.titulo)}</h2><p>Gerado em: ${esc(rel.geradoEm)} por TransportHub</p></div>
+        <div class="no-print">${botoes || ''}<button class="btn" style="background:#6b7280" onclick="window.close()">Fechar Janela</button></div></div>
+        <div class="filtros">${rel.filtros.map(f => `<span><b>${esc(f[0])}:</b> ${esc(f[1])}</span>`).join('')}</div>
+        <div class="cards">${rel.cards.map(c => `<div class="card" style="border-left-color:#${c.cor}"><p class="r">${esc(c.rot)}</p><p class="v">${esc(c.val)}</p><p class="s">${esc(c.sub)}</p></div>`).join('')}</div>
+        ${rel.vazio ? '<div class="vazio">Nenhum registro encontrado com os filtros atuais.</div>' : ''}
+        ${rel.tabelas.map(tabela).join('')}
+        ${legenda}${rel.grades.map(grade).join('')}
+        <div class="rodape">Gerado por TransportHub · SEMCAS - Sistema de Demandas</div>
+    </div>${scriptExtra || ''}</body></html>`;
+}
+
+function relFolgasVisualizar() {
+    const rel = thRelFolgasDados(relFolgasCfg());
+    const j = window.open('', '_blank');
+    if (!j) { mostrarMensagem('O navegador bloqueou a nova janela. Libere pop-ups para este site.', 'error'); return; }
+    j.document.write(thPaginaRelFolgas(rel, '<button class="btn" style="background:#2563eb" onclick="window.print()">Imprimir</button>'));
+    j.document.close();
+}
+function relFolgasPDF() {
+    const rel = thRelFolgasDados(relFolgasCfg());
+    const j = window.open('', '_blank');
+    if (!j) { mostrarMensagem('O navegador bloqueou a nova janela. Libere pop-ups para este site.', 'error'); return; }
+    j.document.write(thPaginaRelFolgas(rel, '<button class="btn" style="background:#2563eb" onclick="window.print()">Imprimir / Salvar PDF</button>'));
+    j.document.close();
+    setTimeout(() => { try { j.focus(); j.print(); } catch (e) {} }, 600);
+}
+
+// ---------- Excel (.xlsx) ----------
+function thCarregarScript(src) {
+    return new Promise((ok, erro) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => erro(new Error('Falha ao carregar ' + src)); document.head.appendChild(s); });
+}
+async function thConstruirXlsxFolgas(rel) {
+    const COR = { escuro: 'FF1F2937', medio: 'FF374151', cinza: 'FF6B7280', claro: 'FFF3F4F6', verde: 'FF0D9488', verdeClaro: 'FFF0FDFA', verdeTexto: 'FF115E59', borda: 'FFE5E7EB', branco: 'FFFFFFFF', zebra: 'FFF9FAFB' };
+    const fill = (c) => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: c } });
+    const bf = { style: 'thin', color: { argb: COR.borda } }, bordas = { top: bf, left: bf, bottom: bf, right: bf };
+    const wb = new ExcelJS.Workbook(); wb.creator = 'TransportHub - SEMCAS'; wb.created = new Date();
+    const pagina = { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } };
+    const cabecalho = (ws, n, linhaFiltros) => {
+        [1, 2, 3, linhaFiltros].forEach(l => ws.mergeCells(l, 1, l, n));
+        const c1 = ws.getCell(1, 1); c1.value = 'TRANSPORTE & DEMANDAS - SEMCAS'; c1.font = { name: 'Calibri', size: 20, bold: true, color: { argb: COR.branco } }; c1.alignment = { vertical: 'middle', indent: 1 };
+        const c2 = ws.getCell(2, 1); c2.value = rel.titulo + '  ·  Gerado em ' + rel.geradoEm; c2.font = { name: 'Calibri', size: 11, color: { argb: 'FFD1D5DB' } }; c2.alignment = { vertical: 'middle', indent: 1 };
+        for (let c = 1; c <= n; c++) { ws.getCell(1, c).fill = fill(COR.escuro); ws.getCell(2, c).fill = fill(COR.medio); ws.getCell(3, c).fill = fill(COR.verde); ws.getCell(linhaFiltros, c).fill = fill(COR.verdeClaro); }
+        ws.getRow(1).height = 34; ws.getRow(2).height = 20; ws.getRow(3).height = 5;
+        const cf = ws.getCell(linhaFiltros, 1); cf.value = 'Filtros aplicados  →  ' + rel.filtros.map(f => f[0] + ': ' + f[1]).join('   |   ');
+        cf.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.verdeTexto } }; cf.alignment = { vertical: 'middle', wrapText: true, indent: 1 }; ws.getRow(linhaFiltros).height = 22;
+    };
+    const cel = (t, v) => {
+        if (t === 'data' && /^\d{4}-\d{2}-\d{2}$/.test(v)) { const [a, m, d] = v.split('-').map(Number); return { v: new Date(Date.UTC(a, m - 1, d)), fmt: 'dd/mm/yyyy' }; }
+        if (v === '' || v == null) return { v: '-' };
+        if (t === 'num' || t === 'saldo' || t === 'sinal') return { v: Number(v), fmt: '#,##0.##' };
+        return { v };
+    };
+
+    // ---- Resumo ----
+    const wsR = wb.addWorksheet('Resumo', { properties: { tabColor: { argb: COR.verde } }, views: [{ showGridLines: false }], pageSetup: pagina });
+    for (let c = 1; c <= 15; c++) wsR.getColumn(c).width = 13;
+    cabecalho(wsR, 15, 4);
+    let ln = 6;
+    const nCards = rel.cards.length || 1, larg = Math.max(2, Math.floor(15 / nCards));
+    rel.cards.forEach((card, i) => {
+        const c0 = i * larg + 1;
+        [0, 1, 2].forEach(k => wsR.mergeCells(ln + k, c0, ln + k, c0 + larg - 1));
+        const lab = wsR.getCell(ln, c0); lab.value = card.rot; lab.font = { name: 'Calibri', size: 9, bold: true, color: { argb: COR.cinza } }; lab.alignment = { vertical: 'bottom', indent: 1 };
+        const val = wsR.getCell(ln + 1, c0); val.value = card.val; val.font = { name: 'Calibri', size: 24, bold: true, color: { argb: 'FF111827' } }; val.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+        const sub = wsR.getCell(ln + 2, c0); sub.value = card.sub; sub.font = { name: 'Calibri', size: 9, color: { argb: COR.cinza } }; sub.alignment = { vertical: 'top', indent: 1 };
+        for (let k = 0; k < 3; k++) for (let c = c0; c < c0 + larg; c++) wsR.getCell(ln + k, c).border = { top: k === 0 ? bf : undefined, bottom: k === 2 ? bf : undefined, right: c === c0 + larg - 1 ? bf : undefined, left: c === c0 ? { style: 'thick', color: { argb: 'FF' + card.cor } } : undefined };
+    });
+    wsR.getRow(ln).height = 20; wsR.getRow(ln + 1).height = 38; wsR.getRow(ln + 2).height = 20; ln += 4;
+    // tabelas secundárias no resumo (não principais)
+    rel.tabelas.filter(t => !t.principal).forEach(t => {
+        wsR.mergeCells(ln, 1, ln, 15); const s = wsR.getCell(ln, 1); s.value = t.titulo.toUpperCase(); s.font = { name: 'Calibri', size: 12, bold: true, color: { argb: COR.branco } }; s.alignment = { vertical: 'middle', indent: 1 };
+        for (let c = 1; c <= 15; c++) wsR.getCell(ln, c).fill = fill(COR.escuro); wsR.getRow(ln).height = 22; ln++;
+        // cada coluna ocupa 2 colunas da planilha (nome ocupa 4)
+        let col = 1; const spans = t.colunas.map((c, i) => (c.n === 'Motorista' ? 4 : c.n === 'Pos.' ? 1 : 2));
+        t.colunas.forEach((c, i) => { if (spans[i] > 1) wsR.mergeCells(ln, col, ln, col + spans[i] - 1); const x = wsR.getCell(ln, col); x.value = c.n; for (let k = col; k < col + spans[i]; k++) { const y = wsR.getCell(ln, k); y.fill = fill(COR.claro); y.border = bordas; } x.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.medio } }; x.alignment = { horizontal: c.al || 'left', vertical: 'middle', wrapText: true, indent: c.al ? 0 : 1 }; col += spans[i]; });
+        wsR.getRow(ln).height = 30; ln++;
+        t.linhas.forEach((l, r) => { col = 1; l.forEach((v, i) => { if (spans[i] > 1) wsR.mergeCells(ln, col, ln, col + spans[i] - 1); const x = wsR.getCell(ln, col), o = cel(t.colunas[i].t, v); x.value = o.v; if (o.fmt) x.numFmt = o.fmt; x.font = { name: 'Calibri', size: 10, bold: i === 1 || t.colunas[i].t === 'saldo', color: t.colunas[i].t === 'saldo' && o.v < 0 ? { argb: 'FFDC2626' } : undefined }; x.alignment = { horizontal: t.colunas[i].al || 'left', vertical: 'middle', indent: t.colunas[i].al ? 0 : 1 }; for (let k = col; k < col + spans[i]; k++) { const y = wsR.getCell(ln, k); y.border = bordas; if (r % 2) y.fill = fill(COR.zebra); } col += spans[i]; }); ln++; });
+        ln++;
+    });
+    wsR.mergeCells(ln, 1, ln, 15); const rod = wsR.getCell(ln, 1); rod.value = 'Gerado por TransportHub · SEMCAS - Sistema de Demandas'; rod.font = { name: 'Calibri', size: 9, italic: true, color: { argb: COR.cinza } }; rod.alignment = { horizontal: 'right' };
+
+    // ---- Planilhas de dados (tabelas principais) ----
+    rel.tabelas.filter(t => t.principal).forEach(t => {
+        const n = t.colunas.length;
+        const ws = wb.addWorksheet(t.titulo.slice(0, 31).replace(/[\\\/\?\*\[\]:]/g, '-'), { properties: { tabColor: { argb: COR.escuro } }, views: [{ state: 'frozen', ySplit: 5, showGridLines: false }], pageSetup: Object.assign({ printTitlesRow: '5:5' }, pagina) });
+        t.colunas.forEach((c, i) => { ws.getColumn(i + 1).width = c.w || 16; });
+        cabecalho(ws, n, 4);
+        const hr = ws.getRow(5); hr.height = 26;
+        t.colunas.forEach((c, i) => { const x = hr.getCell(i + 1); x.value = c.n.toUpperCase(); x.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.branco } }; x.fill = fill(COR.escuro); x.alignment = { vertical: 'middle', horizontal: c.al || 'left', indent: c.al ? 0 : 1, wrapText: true }; x.border = { bottom: { style: 'medium', color: { argb: COR.verde } } }; });
+        t.linhas.forEach((l, r) => {
+            const row = ws.getRow(6 + r);
+            l.forEach((v, i) => {
+                const c = t.colunas[i], x = row.getCell(i + 1), o = cel(c.t, v); x.value = o.v; if (o.fmt) x.numFmt = o.fmt;
+                let cor; if ((c.t === 'saldo' || c.t === 'sinal') && o.v < 0) cor = { argb: 'FFDC2626' }; else if (c.t === 'sinal' && o.v > 0) cor = { argb: 'FF047857' };
+                if (c.n === 'Situação') cor = { argb: { 'Gozada': 'FF475569', 'Em andamento': 'FF059669', 'Agendada': 'FF0284C7' }[v] || 'FF475569' };
+                x.font = { name: 'Calibri', size: 10, bold: i === 0 || c.t === 'saldo' || c.t === 'sinal' || c.n === 'Situação', color: cor };
+                x.alignment = { vertical: 'middle', horizontal: c.al || 'left', indent: c.al ? 0 : 1, wrapText: /Observação|Descrição/.test(c.n) };
+                x.border = bordas; if (r % 2) x.fill = fill(COR.zebra);
+            });
+            row.height = 20;
+        });
+        let fim = 5 + Math.max(t.linhas.length, 1);
+        if (t.linhas.length) ws.autoFilter = { from: { row: 5, column: 1 }, to: { row: fim, column: n } };
+        if (t.total) {
+            const row = ws.getRow(fim + 1);
+            t.total.forEach((v, i) => { const x = row.getCell(i + 1), c = t.colunas[i]; x.value = i === 0 ? v : Number(v); if (i) x.numFmt = '#,##0.##'; x.font = { name: 'Calibri', size: 11, bold: true, color: { argb: COR.verdeTexto } }; x.fill = fill(COR.verdeClaro); x.alignment = { horizontal: c.al || 'left', indent: c.al ? 0 : 1 }; x.border = { top: { style: 'medium', color: { argb: COR.verde } } }; });
+            fim++;
+        }
+        ws.mergeCells(fim + 2, 1, fim + 2, n);
+        const tot = ws.getCell(fim + 2, 1); tot.value = 'Total de registros: ' + t.linhas.length; tot.font = { name: 'Calibri', size: 11, bold: true, color: { argb: COR.verdeTexto } }; tot.alignment = { horizontal: 'right' };
+    });
+
+    // ---- Grades mensais coloridas ----
+    rel.grades.forEach(g => {
+        const ws = wb.addWorksheet(('Grade ' + g.titulo.replace(' de ', ' ')).slice(0, 31), { properties: { tabColor: { argb: 'FF14B8A6' } }, views: [{ showGridLines: false }], pageSetup: pagina });
+        const n = g.nd + 2;
+        ws.getColumn(1).width = 30; for (let d = 1; d <= g.nd; d++) ws.getColumn(d + 1).width = 4.2; ws.getColumn(n).width = 8;
+        cabecalho(ws, n, 4);
+        ws.mergeCells(5, 1, 5, n); const t5 = ws.getCell(5, 1); t5.value = 'Grade de ' + g.titulo; t5.font = { name: 'Calibri', size: 13, bold: true, color: { argb: COR.verdeTexto } }; t5.alignment = { vertical: 'middle', indent: 1 }; ws.getRow(5).height = 24;
+        const h = ws.getRow(6); h.height = 30;
+        const c0 = h.getCell(1); c0.value = 'MOTORISTA'; c0.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.branco } }; c0.fill = fill(COR.escuro); c0.alignment = { vertical: 'middle', indent: 1 };
+        for (let d = 1; d <= g.nd; d++) { const x = h.getCell(d + 1); x.value = d + '\n' + 'DSTQQSS'[g.sem[d - 1]]; x.font = { name: 'Calibri', size: 9, bold: true, color: { argb: COR.branco } }; x.fill = fill([0, 6].includes(g.sem[d - 1]) ? COR.cinza : COR.escuro); x.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; x.border = { left: bf, right: bf }; }
+        const hn = h.getCell(n); hn.value = 'DIAS'; hn.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.branco } }; hn.fill = fill(COR.escuro); hn.alignment = { horizontal: 'center', vertical: 'middle' };
+        g.linhas.forEach((r, i) => {
+            const row = ws.getRow(7 + i); row.height = 20;
+            const a = row.getCell(1); a.value = r.nome; a.font = { name: 'Calibri', size: 10, bold: true }; a.alignment = { vertical: 'middle', indent: 1 }; a.border = bordas;
+            r.cels.forEach((c, d) => { const x = row.getCell(d + 2); x.border = bordas; x.alignment = { horizontal: 'center', vertical: 'middle' };
+                if (c) { x.value = c.t; x.fill = fill('FF' + c.cor.replace('#', '')); x.font = { name: 'Calibri', size: 10, bold: true, color: { argb: COR.branco } }; } else if ([0, 6].includes(g.sem[d])) x.fill = fill(COR.claro); });
+            const z = row.getCell(n); z.value = r.dias; z.font = { name: 'Calibri', size: 10, bold: true }; z.alignment = { horizontal: 'center', vertical: 'middle' }; z.border = bordas;
+        });
+        if (rel.legenda) { const l = 8 + g.linhas.length; ws.mergeCells(l, 1, l, n); const x = ws.getCell(l, 1); x.value = 'Legenda:  ' + rel.legenda.map(z => z.sigla + ' = ' + z.nome).join('   ·   '); x.font = { name: 'Calibri', size: 10, color: { argb: COR.cinza } }; x.alignment = { indent: 1 }; }
+    });
+    return await wb.xlsx.writeBuffer();
+}
+async function relFolgasExcel() {
+    const btn = document.getElementById('relFolgasBtnExcel'); const rot = btn.innerHTML;
+    btn.disabled = true; btn.textContent = 'Gerando planilha...';
+    try {
+        const rel = thRelFolgasDados(relFolgasCfg());
+        if (typeof ExcelJS === 'undefined') await thCarregarScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js');
+        const buf = await thConstruirXlsxFolgas(rel);
+        const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+        const a = document.createElement('a'); a.href = url; a.download = `SEMCAS_Folgas_${relFolgasCfg().tipo}_${dataLocalStr(new Date())}.xlsx`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 2000);
+        mostrarMensagem('Planilha gerada!', 'success');
+    } catch (e) { console.error(e); mostrarMensagem('Não foi possível gerar a planilha (verifique a conexão com a internet).', 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = rot; }
 }
 
 // ---------- 2) PROGRAMAÇÃO ----------
